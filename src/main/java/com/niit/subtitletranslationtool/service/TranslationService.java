@@ -125,7 +125,7 @@ public class TranslationService {
     }
 
     private String buildTranslationPrompt(List<SrtEntry> chunk) {
-        return "你是一个字幕翻译专家，请将以下英语SRT字幕严格按原格式翻译成简体中文，保持时间戳和序号不变：\n" + buildSrtContent(chunk);
+        return "你是一个字幕翻译专家，请将以下英语SRT字幕严格按原格式翻译成简体中文，就好像原本就是用中文写的一样，保持时间戳和序号不变：\n" + buildSrtContent(chunk);
     }
 
     private String callDoubaoApi(String prompt) {
