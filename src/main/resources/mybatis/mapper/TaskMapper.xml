@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.niit.subtitletranslationtool.mapper.TaskMapper">
+
+    <insert id="insertTask" parameterType="com.niit.subtitletranslationtool.entity.Task"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO task (
+        original_video_filename,
+        stored_video_filename,
+        video_file_path,
+        status,
+        created_at,
+        updated_at
+        <!-- 根据你的Task实体和数据库表设计，添加其他需要初始化的字段 -->
+        ) VALUES (
+        #{originalVideoFilename},
+        #{storedVideoFilename},
+        #{videoFilePath},
+        #{status, typeHandler=org.apache.ibatis.type.EnumOrdinalTypeHandler}, <!-- 或者 EnumTypeHandler -->
+        #{createdAt},
+        #{updatedAt}
+        )
+    </insert>
+
+    <!-- 建议为所有字段定义 resultMap，方便查询 -->
+    <resultMap id="TaskResultMap" type="com.niit.subtitletranslationtool.entity.Task">
+        <id property="id" column="id"/>
+        <result property="originalVideoFilename" column="original_video_filename"/>
+        <result property="storedVideoFilename" column="stored_video_filename"/>
+        <result property="videoFilePath" column="video_file_path"/>
+        <result property="extractedAudioFilename" column="extracted_audio_filename"/>
+        <result property="extractedAudioFilePath" column="extracted_audio_file_path"/>
+        <result property="originalSrtFilename" column="original_srt_filename"/>
+        <result property="originalSrtFilePath" column="original_srt_file_path"/>
+        <result property="translatedSrtFilename" column="translated_srt_filename"/>
+        <result property="translatedSrtFilePath" column="translated_srt_file_path"/>
+        <result property="subtitledVideoFilename" column="subtitled_video_filename"/>
+        <result property="subtitledVideoFilePath" column="subtitled_video_file_path"/>
+        <result property="status" column="status" typeHandler="org.apache.ibatis.type.EnumOrdinalTypeHandler"/>
+        <result property="errorMessage" column="error_message"/>
+        <result property="detectedLanguage" column="detected_language"/>
+        <result property="languageProbability" column="language_probability"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="findTaskById" resultMap="TaskResultMap">
+        SELECT * FROM task WHERE id = #{id}
+    </select>
+
+</mapper>

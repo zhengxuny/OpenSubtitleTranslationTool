@@ -7,12 +7,15 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>SubtitleTranslationTool</name>
     <description>SubtitleTranslationTool</description>
+
     <properties>
-        <java.version>1.8</java.version>
+        <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spring-boot.version>2.6.13</spring-boot.version>
+        <!-- 升级Spring Boot到3.x（支持JDK 21） -->
+        <spring-boot.version>3.3.0</spring-boot.version>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -22,12 +25,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <!-- MyBatis升级到与Spring Boot 3.x兼容的版本 -->
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
-            <version>2.2.2</version>
+            <version>3.0.4</version>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -49,9 +52,21 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.10.0</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <version>2.1.1</version> <!-- 与Spring Boot 3.x的Jakarta EE环境兼容 -->
+        </dependency>
     </dependencies>
+
     <dependencyManagement>
         <dependencies>
+            <!-- 同步Spring Boot依赖管理版本 -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -64,16 +79,18 @@
 
     <build>
         <plugins>
+            <!-- 升级编译器插件以支持JDK 21 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.12.0</version> <!-- 3.12.0+明确支持JDK 21 -->
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
+            <!-- 同步Spring Boot Maven插件版本 -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -82,14 +99,7 @@
                     <mainClass>com.niit.subtitletranslationtool.SubtitleTranslationToolApplication</mainClass>
                     <skip>true</skip>
                 </configuration>
-                <executions>
-                    <execution>
-                        <id>repackage</id>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
+
             </plugin>
         </plugins>
     </build>
