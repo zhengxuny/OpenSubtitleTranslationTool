@@ -2,27 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.niit.subtitletranslationtool.mapper.TaskMapper">
 
-    <insert id="insertTask" parameterType="com.niit.subtitletranslationtool.entity.Task"
-            useGeneratedKeys="true" keyProperty="id" keyColumn="id">
-        INSERT INTO task (
-        original_video_filename,
-        stored_video_filename,
-        video_file_path,
-        status,
-        created_at,
-        updated_at
-        <!-- 根据你的Task实体和数据库表设计，添加其他需要初始化的字段 -->
-        ) VALUES (
-        #{originalVideoFilename},
-        #{storedVideoFilename},
-        #{videoFilePath},
-        #{status, typeHandler=org.apache.ibatis.type.EnumOrdinalTypeHandler}, <!-- 或者 EnumTypeHandler -->
-        #{createdAt},
-        #{updatedAt}
-        )
-    </insert>
-
-    <!-- 建议为所有字段定义 resultMap，方便查询 -->
     <resultMap id="TaskResultMap" type="com.niit.subtitletranslationtool.entity.Task">
         <id property="id" column="id"/>
         <result property="originalVideoFilename" column="original_video_filename"/>
@@ -36,7 +15,8 @@
         <result property="translatedSrtFilePath" column="translated_srt_file_path"/>
         <result property="subtitledVideoFilename" column="subtitled_video_filename"/>
         <result property="subtitledVideoFilePath" column="subtitled_video_file_path"/>
-        <result property="status" column="status" typeHandler="org.apache.ibatis.type.EnumOrdinalTypeHandler"/>
+        <!-- 使用EnumTypeHandler将枚举名称映射为数据库VARCHAR -->
+        <result property="status" column="status" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
         <result property="errorMessage" column="error_message"/>
         <result property="detectedLanguage" column="detected_language"/>
         <result property="languageProbability" column="language_probability"/>
@@ -44,8 +24,50 @@
         <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
-    <select id="findTaskById" resultMap="TaskResultMap">
+    <insert id="insertTask" parameterType="com.niit.subtitletranslationtool.entity.Task"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO task (
+            original_video_filename,
+            stored_video_filename,
+            video_file_path,
+            status,
+            created_at,
+            updated_at
+        ) VALUES (
+            #{originalVideoFilename},
+            #{storedVideoFilename},
+            #{videoFilePath},
+            #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler}, <!-- 枚举名称转字符串 -->
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <select id="findById" resultMap="TaskResultMap">
         SELECT * FROM task WHERE id = #{id}
     </select>
+
+    <update id="updateTask" parameterType="com.niit.subtitletranslationtool.entity.Task">
+        UPDATE task
+        SET
+            original_video_filename = #{originalVideoFilename},
+            stored_video_filename = #{storedVideoFilename},
+            video_file_path = #{videoFilePath},
+            extracted_audio_filename = #{extractedAudioFilename},
+            extracted_audio_file_path = #{extractedAudioFilePath},
+            original_srt_filename = #{originalSrtFilename},
+            original_srt_file_path = #{originalSrtFilePath},
+            translated_srt_filename = #{translatedSrtFilename},
+            translated_srt_file_path = #{translatedSrtFilePath},
+            subtitled_video_filename = #{subtitledVideoFilename},
+            subtitled_video_file_path = #{subtitledVideoFilePath},
+            status = #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler}, <!-- 枚举名称转字符串 -->
+            error_message = #{errorMessage},
+            detected_language = #{detectedLanguage},
+            language_probability = #{languageProbability},
+            updated_at = #{updatedAt} <!-- 手动更新时间，或依赖数据库ON UPDATE（需调整） -->
+        WHERE
+            id = #{id}
+    </update>
 
 </mapper>

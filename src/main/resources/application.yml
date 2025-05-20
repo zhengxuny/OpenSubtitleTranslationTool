@@ -32,3 +32,6 @@ file:
   # 相对路径，将在项目根目录下创建uploads文件夹
   upload-dir: uploads/
   # 也可以设置为绝对路径，例如 C:/subtitle_uploads
+
+temp:
+  audio-dir: temp/audio/
