@@ -88,6 +88,9 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                     <encoding>UTF-8</encoding>
+                    <compilerArgs>
+                        <arg>-parameters</arg> <!-- 关键配置 -->
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <!-- 同步Spring Boot Maven插件版本 -->

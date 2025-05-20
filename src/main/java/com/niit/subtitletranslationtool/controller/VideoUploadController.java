@@ -4,8 +4,8 @@ import com.niit.subtitletranslationtool.dto.UploadResponse;
 import com.niit.subtitletranslationtool.entity.Task;
 import com.niit.subtitletranslationtool.enums.TaskStatus;
 import com.niit.subtitletranslationtool.mapper.TaskMapper;
+import com.niit.subtitletranslationtool.service.AsyncVideoProcessingService;
 import com.niit.subtitletranslationtool.service.StorageService;
-import com.niit.subtitletranslationtool.service.TaskProcessingService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,17 +25,18 @@ public class VideoUploadController {
 
     private final StorageService storageService;
     private final TaskMapper taskMapper;
-    private final TaskProcessingService taskProcessingService;
+    private final AsyncVideoProcessingService asyncVideoProcessingService; // 新增异步处理服务依赖
     private final Path uploadDir;
 
+    // 构造函数新增 AsyncVideoProcessingService 注入
     public VideoUploadController(
             StorageService storageService,
             TaskMapper taskMapper,
-            TaskProcessingService taskProcessingService,
+            AsyncVideoProcessingService asyncVideoProcessingService, // 新增参数
             @Value("${file.upload-dir}") String uploadDir) {
         this.storageService = storageService;
         this.taskMapper = taskMapper;
-        this.taskProcessingService = taskProcessingService;
+        this.asyncVideoProcessingService = asyncVideoProcessingService;
         this.uploadDir = Paths.get(uploadDir).isAbsolute()
                 ? Paths.get(uploadDir)
                 : Paths.get(System.getProperty("user.dir"), uploadDir);
@@ -48,26 +49,26 @@ public class VideoUploadController {
             String uniquePrefix = UUID.randomUUID().toString() + "_";
             String storedFilename = storageService.store(file, uniquePrefix);
 
-            // 2. 创建任务实体
+            // 2. 创建任务实体（初始状态为已上传）
             Task task = Task.builder()
                     .originalVideoFilename(file.getOriginalFilename())
                     .storedVideoFilename(storedFilename)
                     .videoFilePath(uploadDir.resolve(storedFilename).toAbsolutePath().toString())
-                    .status(TaskStatus.UPLOADED) // 初始状态：已上传
+                    .status(TaskStatus.UPLOADED)
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
                     .build();
 
-            // 3. 插入数据库
+            // 3. 插入数据库（自增ID生效）
             taskMapper.insertTask(task);
 
-            // 4. 触发任务处理（音轨提取）
-            taskProcessingService.processTask(task);
+            // 4. 关键修改：触发异步处理（不再同步调用processTask）
+            asyncVideoProcessingService.processTaskAsync(task.getId());
 
-            // 5. 返回上传结果
+            // 5. 立即返回任务ID给前端
             return ResponseEntity.ok(new UploadResponse(
                     task.getId(),
-                    "文件上传成功，开始处理",
+                    "文件上传成功，任务已启动（异步处理中）",
                     file.getOriginalFilename(),
                     storedFilename
             ));
