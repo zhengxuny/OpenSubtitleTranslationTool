@@ -10,6 +10,7 @@ public enum TaskStatus {
     EXTRACTION_FAILED,    // 音轨提取失败（新增）
     TRANSCRIBING,         // 音频转文字中
     TRANSCRIBED,          // 音频转文字完成
+    TRANSCRIPTION_FAILED, // 音频转文字失败（新增）
     TRANSLATING,          // 字幕翻译中
     TRANSLATED,           // 字幕翻译完成
     SUBTITLE_BURNING,     // 字幕压制中

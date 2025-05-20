@@ -35,3 +35,12 @@ file:
 
 temp:
   audio-dir: temp/audio/
+
+
+whisper:
+  executable-path: "D:/code/Subtitle_translation_tool/Pyhton/faster-whisper-xxl.exe"
+  model: "large-v3-turbo"                                # 使用大模型保证精度
+  device: "cuda"                                         # 优先使用GPU加速
+  output-dir: "temp/srt_original/"                       # 原始SRT存储目录
+  vad-filter: true                                       # 启用语音活动检测
+  timeout-multiplier: 3                                  # 超时倍数（音频时长×2）
