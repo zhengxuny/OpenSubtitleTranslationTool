@@ -29,12 +29,12 @@ mybatis:
   type-aliases-package: com.niit.subtitletranslationtool.entity
 
 file:
-  # 相对路径，将在项目根目录下创建uploads文件夹
   upload-dir: uploads/
-  # 也可以设置为绝对路径，例如 C:/subtitle_uploads
+  translated-srt-dir: "temp/srt_translated/"
 
 temp:
   audio-dir: temp/audio/
+
 
 
 whisper:
@@ -44,3 +44,12 @@ whisper:
   output-dir: "temp/srt_original/"                       # 原始SRT存储目录
   vad-filter: true                                       # 启用语音活动检测
   timeout-multiplier: 3                                  # 超时倍数（音频时长×2）
+
+# Doubao API配置
+doubao:
+  api-base: "https://ark.cn-beijing.volces.com/api/v3"
+  api-key: "34cc6e77-8723-4668-8a2a-1b41d1ac1329"  # 建议实际部署时改为环境变量注入
+  model: "doubao-1-5-pro-32k-250115"
+  max-context-length: 32000  # 模型最大上下文长度
+  timeout: 60000  # API调用超时时间（毫秒）
+

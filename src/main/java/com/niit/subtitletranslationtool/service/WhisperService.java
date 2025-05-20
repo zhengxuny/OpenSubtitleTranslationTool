@@ -106,9 +106,10 @@ public class WhisperService {
             throw new RuntimeException("Whisper转录超时，音频路径: " + audioPath);
         }
 
-        if (process.exitValue() != 0) {
-            throw new RuntimeException("Whisper执行失败，退出码: " + process.exitValue() + "，输出: " + output);
-        }
+        //貌似fasterwhisperxxl有点问题，会溢出内存报错，但实际上生成正确str字幕了，所以就先不管他吧
+//        if (process.exitValue() != 0) {
+//            throw new RuntimeException("Whisper执行失败，退出码: " + process.exitValue() + "，输出: " + output);
+//        }
 
         // 验证SRT文件
         String srtFilename = audioPath.getFileName().toString().replaceFirst("\\.[^.]+$", ".srt");

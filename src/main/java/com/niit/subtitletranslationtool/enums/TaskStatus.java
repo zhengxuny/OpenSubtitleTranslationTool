@@ -13,6 +13,7 @@ public enum TaskStatus {
     TRANSCRIPTION_FAILED, // 音频转文字失败（新增）
     TRANSLATING,          // 字幕翻译中
     TRANSLATED,           // 字幕翻译完成
+    TRANSLATION_FAILED,   // 字幕翻译失败（新增）
     SUBTITLE_BURNING,     // 字幕压制中
     COMPLETED,            // 任务完成
     FAILED,               // 任务失败（通用失败状态）
