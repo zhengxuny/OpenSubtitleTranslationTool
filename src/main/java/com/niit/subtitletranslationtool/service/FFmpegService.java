@@ -15,6 +15,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class FFmpegService {
@@ -113,37 +116,135 @@ public class FFmpegService {
         }
         return true;
     }
+    /**
+     * 为FFmpeg滤镜参数转义Windows路径中的冒号。
+     * 例如 "C:/path/to/file.srt" 转换为 "C\\:/path/to/file.srt"
+     * @param path 原始路径
+     * @return 转义后的路径
+     */
+    private String escapePathForFFmpegFilter(String path) {
+        if (path == null) {
+            return null;
+        }
+        // 仅当路径以 "盘符:" 开头时 (例如 C:/ D:/)
+        // Pattern to match a windows drive letter followed by a colon and a slash
+        // e.g., C:/, D:\
+        Pattern windowsPathPattern = Pattern.compile("^([a-zA-Z]):([/\\\\])");
+        Matcher matcher = windowsPathPattern.matcher(path);
+        if (matcher.find()) {
+            // Replace "C:/" with "C\\:/" or "C:\" with "C\\:\"
+            // The (/) or (\) is captured in group 2, so we re-add it.
+            return matcher.group(1) + "\\\\:" + matcher.group(2) + path.substring(matcher.end());
+        }
+        // Also escape other special characters if necessary for filtergraphs,
+        // like single quotes, backslashes, commas, brackets.
+        // For now, focusing on the colon which is the primary issue.
+        // path = path.replace("\\", "\\\\"); // Escape backslashes
+        // path = path.replace("'", "\\'");   // Escape single quotes
+        // path = path.replace(",", "\\,");   // Escape commas
+        // path = path.replace("[", "\\[");  // Escape open bracket
+        // path = path.replace("]", "\\]");  // Escape close bracket
+        return path;
+    }
 
     /**
      * 压制字幕到视频
-     * @param videoPath 原始视频路径
-     * @param srtPath 翻译后的SRT路径
-     * @param outputPath 输出视频路径
+     * @param videoPath 原始视频路径（绝对路径）
+     * @param srtPath 翻译后的SRT路径（绝对路径）
+     * @param outputPath 输出视频路径（绝对路径）
      * @return 成功状态
      */
     public boolean burnSubtitles(String videoPath, String srtPath, String outputPath) {
-        // 处理Windows路径转义（替换反斜杠）
-        String escapedSrt = srtPath.replace("\\", "/");
+        // 1. 路径规范化：反斜杠替换为正斜杠
         String escapedVideo = videoPath.replace("\\", "/");
+        String escapedSrt = srtPath.replace("\\", "/");
+        String escapedOutput = outputPath.replace("\\", "/");
 
-        List<String> command = Arrays.asList(
+        // 2. 为FFmpeg滤镜中的SRT路径特殊转义 (主要是Windows盘符冒号)
+        String srtPathForFilter = escapePathForFFmpegFilter(escapedSrt);
+        if (srtPathForFilter == null) {
+            logger.error("SRT path for filter is null after escaping.");
+            return false;
+        }
+
+        // 3. 确保输出目录存在
+        File outputFile = new File(escapedOutput);
+        File outputDir = outputFile.getParentFile();
+        if (outputDir != null && !outputDir.exists()) {
+            if (!outputDir.mkdirs()) {
+                logger.error("Failed to create output directory: {}", outputDir.getAbsolutePath());
+                return false;
+            }
+            logger.info("Created output directory: {}", outputDir.getAbsolutePath());
+        }
+
+
+        List<String> command = new ArrayList<>(Arrays.asList(
                 "ffmpeg",
                 "-i", escapedVideo,
-                "-vf", "subtitles=" + escapedSrt,  // ffmpeg字幕滤镜
+                "-vf", "subtitles=" + srtPathForFilter, // 使用转义后的SRT路径
+                "-c:v", "libx264", // 指定视频编码器 (可选, 但有时能避免编码问题)
+                "-c:a", "aac",     // 指定音频编码器 (可选)
+                "-strict", "experimental", // 可能需要，取决于FFmpeg版本和字幕样式
                 "-y",  // 覆盖已存在文件
-                outputPath.replace("\\", "/")
-        );
+                escapedOutput
+        ));
+
+        // 如果你的FFmpeg版本较新，可能需要指定字体，特别是处理中文字幕时
+        // command.add("-fontfile");
+        // command.add("C:/Windows/Fonts/msyh.ttc"); // 示例：微软雅黑字体路径，根据实际情况修改
+
+        logger.info("Executing FFmpeg command for subtitle burning: {}", String.join(" ", command));
 
         try {
-            Process process = new ProcessBuilder(command)
-                    .redirectErrorStream(true)
-                    .start();
+            ProcessBuilder processBuilder = new ProcessBuilder(command);
+            processBuilder.redirectErrorStream(true); // 合并 stdout 和 stderr
+            Process process = processBuilder.start();
 
-            // 等待处理完成（设置合理超时，如30分钟）
-            boolean success = process.waitFor(30, TimeUnit.MINUTES);
-            return success && process.exitValue() == 0;
+            StringBuilder ffmpegOutputBuilder = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    ffmpegOutputBuilder.append(line).append(System.lineSeparator());
+                    // 可以选择性地实时打印日志，或者等待结束后一起打印
+                    // logger.debug("FFMPEG_LOG: {}", line);
+                }
+            }
+            String ffmpegOutput = ffmpegOutputBuilder.toString();
+            logger.info("FFmpeg subtitle burning output: \n{}", ffmpegOutput);
+
+            boolean finished = process.waitFor(30, TimeUnit.MINUTES); // 等待30分钟
+            int exitCode;
+
+            if (!finished) {
+                logger.error("FFmpeg subtitle burning process timed out after 30 minutes. Destroying forcibly.");
+                process.destroyForcibly(); // 强制结束
+                exitCode = process.waitFor(); // 获取强制结束后的退出码
+                logger.error("FFmpeg process exit code after forcible destruction: {}", exitCode);
+                return false;
+            }
+
+            exitCode = process.exitValue();
+            logger.info("FFmpeg subtitle burning process finished: {}, Exit code: {}", finished, exitCode);
+
+
+            if (exitCode != 0) {
+                logger.error("FFmpeg subtitle burning failed with exit code {}. Command: {}", exitCode, String.join(" ", command));
+                // 额外检查输出文件是否存在且有效
+                File createdOutputFile = new File(escapedOutput);
+                if (!createdOutputFile.exists() || createdOutputFile.length() == 0) {
+                    logger.error("Output file was not created or is empty: {}", escapedOutput);
+                }
+                return false;
+            }
+
+            return true;
+        } catch (InterruptedException e) {
+            logger.error("FFmpeg subtitle burning process was interrupted. Command: {}", String.join(" ", command), e);
+            Thread.currentThread().interrupt(); // Restore interrupted status
+            return false;
         } catch (Exception e) {
-            logger.error("字幕压制失败: {}", command, e);
+            logger.error("FFmpeg subtitle burning failed due to an exception. Command: {}", String.join(" ", command), e);
             return false;
         }
     }
