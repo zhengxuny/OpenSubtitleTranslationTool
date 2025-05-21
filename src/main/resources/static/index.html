@@ -52,7 +52,10 @@
                 <button id="cancelBtn">取消任务</button>
             </div>
 
+            <!-- SRT下载链接 -->
             <a class="download-link" id="downloadLink" href="#">下载翻译后的SRT文件</a>
+            <!-- 新增视频下载链接 -->
+            <a class="download-link" id="videoDownloadLink" href="#">下载压制后的视频</a>
         </div>
     </div>
 
@@ -152,10 +155,17 @@
                             });
                         }
 
-                        // 任务完成或失败时停止轮询
+                        // 任务完成时显示下载链接
                         if (task.status === 'COMPLETED') {
+                            // 显示SRT下载链接（始终显示）
                             $('#downloadLink').attr('href', `/api/task/download/srt/translated/${taskId}`);
                             $('#downloadLink').show();
+
+                            // 显示视频下载链接（仅当压制字幕且视频文件存在时）
+                            if (task.burnSubtitles && task.subtitledVideoFilePath) {
+                                $('#videoDownloadLink').attr('href', `/api/task/download/video/subtitled/${taskId}`);
+                                $('#videoDownloadLink').show();
+                            }
                             clearInterval(interval);
                         } else if (['FAILED', 'CANCELLED'].includes(task.status)) {
                             clearInterval(interval);
