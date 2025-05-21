@@ -64,11 +64,10 @@ public class VideoUploadController {
             // 保存用户压制选择到任务
             task.setBurnSubtitles(burnSubtitles);  // 需在Task实体添加该字段
 
-
             // 3. 插入数据库（自增ID生效）
             taskMapper.insertTask(task);
 
-            // 4. 关键修改：触发异步处理（不再同步调用processTask）
+            // 4. 异步触发后续处理流程
             asyncVideoProcessingService.processTaskAsync(task.getId());
 
             // 5. 立即返回任务ID给前端

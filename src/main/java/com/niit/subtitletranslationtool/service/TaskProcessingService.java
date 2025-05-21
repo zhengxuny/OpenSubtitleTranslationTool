@@ -58,7 +58,81 @@ public class TaskProcessingService {
     public void processTask(Task task) {
         logger.info("开始处理任务：{}", task.getId());
         try {
-            // ...原有前置处理逻辑...
+            // 步骤1：更新状态为"视频检查中"
+            task.setStatus(TaskStatus.VIDEO_CHECKING);
+            taskMapper.updateTask(task);
+
+            // 步骤2：执行视频完整性检测
+            boolean isVideoIntegral = ffmpegService.checkVideoIntegrity(task.getVideoFilePath());
+            if (!isVideoIntegral) {
+                // 视频损坏，更新状态等待用户选择
+                task.setStatus(TaskStatus.VIDEO_DAMAGED_AWAITING_USER_CHOICE);
+                task.setErrorMessage("视频文件损坏，可能无法正常处理");
+                taskMapper.updateTask(task);
+                return; // 终止后续处理，等待用户操作
+            }
+            else {
+                logger.info("视频文件完整，继续处理");
+            }
+
+            // 1. 音轨提取流程（保持原有逻辑）
+            task.setStatus(TaskStatus.AUDIO_EXTRACTING);
+            logger.info("任务{}开始音轨提取...",task.getId());
+            task.setUpdatedAt(LocalDateTime.now());
+            taskMapper.updateTask(task);
+
+            String audioFilename = UUID.randomUUID() + ".mp3";
+            Path audioPath = tempAudioDir.resolve(audioFilename);
+            String audioOutputPath = audioPath.toAbsolutePath().toString();
+
+            boolean extractSuccess = ffmpegService.extractAudio(task.getVideoFilePath(), audioOutputPath);
+
+            if (!extractSuccess) {
+                task.setStatus(TaskStatus.EXTRACTION_FAILED);
+                task.setErrorMessage("FFmpeg音轨提取失败");
+                task.setUpdatedAt(LocalDateTime.now());
+                taskMapper.updateTask(task);
+                logger.error("任务{}音轨提取失败", task.getId());
+                return;
+            }
+
+            task.setStatus(TaskStatus.AUDIO_EXTRACTED);
+            task.setExtractedAudioFilename(audioFilename);
+            task.setExtractedAudioFilePath(audioOutputPath);
+            task.setUpdatedAt(LocalDateTime.now());
+            taskMapper.updateTask(task);
+            logger.info("任务{}音轨提取成功，音频路径：{}", task.getId(), audioOutputPath);
+
+            // 2. 音频转文字流程（保持原有逻辑）
+            task.setStatus(TaskStatus.TRANSCRIBING);
+            logger.info("任务{}开始音频转文字...", task.getId());
+            task.setUpdatedAt(LocalDateTime.now());
+            taskMapper.updateTask(task);
+
+            WhisperService.TranscriptionResult transcriptionResult =
+                whisperService.transcribe(task.getExtractedAudioFilePath());
+
+            task.setStatus(TaskStatus.TRANSCRIBED);
+            task.setOriginalSrtFilename(transcriptionResult.getSrtFilename());
+            task.setOriginalSrtFilePath(transcriptionResult.getSrtFilePath());
+            task.setUpdatedAt(LocalDateTime.now());
+            taskMapper.updateTask(task);
+            logger.info("任务{}音频转文字成功，SRT路径：{}", task.getId(), transcriptionResult.getSrtFilePath());
+
+            // 3. 新增：触发字幕翻译流程
+            task.setStatus(TaskStatus.TRANSLATING); // 更新状态为翻译中
+            logger.info("任务{}开始字幕翻译...", task.getId()); // 这里应该是info级别日志，修正为info
+            task.setUpdatedAt(LocalDateTime.now());
+            taskMapper.updateTask(task);
+            logger.info("任务{}开始字幕翻译，原始SRT路径：{}", task.getId(), task.getOriginalSrtFilePath());
+
+            translationService.translateSrtFile(task); // 调用翻译服务
+
+            // 翻译成功后更新状态（翻译服务内部已更新文件路径，此处更新最终状态）
+            task.setStatus(TaskStatus.TRANSLATED);
+            task.setUpdatedAt(LocalDateTime.now());
+            taskMapper.updateTask(task);
+            logger.info("任务{}字幕翻译成功，翻译后SRT路径：{}", task.getId(), task.getTranslatedSrtFilePath());
 
             // 翻译完成后检查是否需要压制
             if (task.getStatus() == TaskStatus.TRANSLATED && task.isBurnSubtitles()) {
