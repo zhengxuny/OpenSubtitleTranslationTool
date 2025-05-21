@@ -7,6 +7,20 @@
         .container { max-width: 800px; margin: 20px auto; padding: 20px; }
         .status-area { margin-top: 20px; padding: 15px; border: 1px solid #eee; display: none; }
         .download-link { color: #28a745; text-decoration: none; margin-top: 10px; display: none; }
+        /* 新增损坏提示样式 */
+        .damage-prompt {
+            margin: 10px 0;
+            padding: 15px;
+            border: 1px solid #f5c6cb;
+            background-color: #f8d7da;
+            color: #721c24;
+            display: none; /* 初始隐藏 */
+        }
+        .damage-prompt button {
+            margin-right: 10px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -25,6 +39,14 @@
             <p>任务ID: <span id="taskId"></span></p>
             <p>当前状态: <span id="currentStatus">处理中...</span></p>
             <p>错误信息: <span id="errorMessage" style="color: red;"></span></p>
+
+            <!-- 新增损坏提示区域 -->
+            <div class="damage-prompt" id="damagePrompt">
+                <p>⚠️ 检测到视频文件损坏，可能影响后续处理（如音轨提取失败）</p>
+                <button id="continueBtn">继续处理（忽略损坏）</button>
+                <button id="cancelBtn">取消任务</button>
+            </div>
+
             <a class="download-link" id="downloadLink" href="#">下载翻译后的SRT文件</a>
         </div>
     </div>
@@ -83,6 +105,44 @@
                         // 更新状态文本
                         $('#currentStatus').text(task.status);
                         $('#errorMessage').text(task.errorMessage || "");
+
+                        // 处理损坏状态
+                        if (task.status === 'VIDEO_DAMAGED_AWAITING_USER_CHOICE') {
+                            $('#damagePrompt').show(); // 显示损坏提示
+                            clearInterval(interval); // 停止轮询等待用户操作
+
+                            // 绑定继续处理按钮
+                            $('#continueBtn').click(() => {
+                                $.ajax({
+                                    url: `/api/task/continue/${taskId}`,
+                                    type: 'POST',
+                                    success: () => {
+                                        $('#damagePrompt').hide();
+                                        $('#currentStatus').text("任务已重新启动处理...");
+                                        pollTaskStatus(taskId); // 重新启动轮询
+                                    },
+                                    error: (xhr) => {
+                                        alert("继续处理失败: " + xhr.responseJSON.message);
+                                    }
+                                });
+                            });
+
+                            // 绑定取消任务按钮
+                            $('#cancelBtn').click(() => {
+                                $.ajax({
+                                    url: `/api/task/cancel/${taskId}`,
+                                    type: 'POST',
+                                    success: () => {
+                                        $('#damagePrompt').hide();
+                                        $('#currentStatus').text("任务已取消");
+                                        clearInterval(interval);
+                                    },
+                                    error: (xhr) => {
+                                        alert("取消任务失败: " + xhr.responseJSON.message);
+                                    }
+                                });
+                            });
+                        }
 
                         // 任务完成或失败时停止轮询
                         if (task.status === 'COMPLETED') {

@@ -5,6 +5,7 @@ public enum TaskStatus {
     UPLOADED,             // 上传完成，等待处理
     VIDEO_CHECKING,       // 视频完整性检查中
     VIDEO_DAMAGED_AWAITING_USER_CHOICE, // 视频损坏，等待用户选择
+
     AUDIO_EXTRACTING,     // 音轨提取中
     AUDIO_EXTRACTED,      // 音轨提取完成
     EXTRACTION_FAILED,    // 音轨提取失败（新增）

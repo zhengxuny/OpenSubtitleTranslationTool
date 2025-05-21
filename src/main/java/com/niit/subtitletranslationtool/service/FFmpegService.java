@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -83,5 +84,31 @@ public class FFmpegService {
             logger.error("执行FFmpeg命令时发生异常", e);
             return false;
         }
+    }
+    /**
+     * 检测视频文件是否完整（无损坏）
+     * @param videoFilePath 视频文件完整路径
+     * @return 完整返回true，损坏返回false
+     */
+    public boolean checkVideoIntegrity(String videoFilePath) throws IOException, InterruptedException {
+        ProcessBuilder processBuilder = new ProcessBuilder(
+                "ffmpeg",                     // 需确保系统已安装ffmpeg并配置环境变量
+                "-v", "error",                // 仅输出错误日志
+                "-i", videoFilePath,          // 输入视频路径
+                "-f", "null",                 // 输出格式为null（不生成文件）
+                "-"                           // 输出到空设备
+        );
+        processBuilder.redirectErrorStream(true); // 合并错误流和标准流
+        Process process = processBuilder.start();
+
+        // 读取命令输出（用于日志记录）
+        String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        int exitCode = process.waitFor(); // 等待命令执行完成
+
+        if (exitCode != 0) {
+            logger.error("视频完整性检测失败，文件路径：{}，错误输出：{}", videoFilePath, output);
+            return false;
+        }
+        return true;
     }
 }

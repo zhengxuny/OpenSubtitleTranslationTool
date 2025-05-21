@@ -58,8 +58,26 @@ public class TaskProcessingService {
     public void processTask(Task task) {
         logger.info("开始处理任务：{}", task.getId());
         try {
+            // 步骤1：更新状态为"视频检查中"
+            task.setStatus(TaskStatus.VIDEO_CHECKING);
+            taskMapper.updateTask(task);
+
+            // 步骤2：执行视频完整性检测
+            boolean isVideoIntegral = ffmpegService.checkVideoIntegrity(task.getVideoFilePath());
+            if (!isVideoIntegral) {
+                // 视频损坏，更新状态等待用户选择
+                task.setStatus(TaskStatus.VIDEO_DAMAGED_AWAITING_USER_CHOICE);
+                task.setErrorMessage("视频文件损坏，可能无法正常处理");
+                taskMapper.updateTask(task);
+                return; // 终止后续处理，等待用户操作
+            }
+            else {
+                logger.info("视频文件完整，继续处理");
+            }
+
             // 1. 音轨提取流程（保持原有逻辑）
             task.setStatus(TaskStatus.AUDIO_EXTRACTING);
+            logger.info("任务{}开始音轨提取...",task.getId());
             task.setUpdatedAt(LocalDateTime.now());
             taskMapper.updateTask(task);
 
@@ -87,6 +105,7 @@ public class TaskProcessingService {
 
             // 2. 音频转文字流程（保持原有逻辑）
             task.setStatus(TaskStatus.TRANSCRIBING);
+            logger.info("任务{}开始音频转文字...", task.getId());
             task.setUpdatedAt(LocalDateTime.now());
             taskMapper.updateTask(task);
 
@@ -102,6 +121,7 @@ public class TaskProcessingService {
 
             // 3. 新增：触发字幕翻译流程
             task.setStatus(TaskStatus.TRANSLATING); // 更新状态为翻译中
+            logger.info("任务{}开始字幕翻译...", task.getId()); // 这里应该是info级别日志，修正为info
             task.setUpdatedAt(LocalDateTime.now());
             taskMapper.updateTask(task);
             logger.info("任务{}开始字幕翻译，原始SRT路径：{}", task.getId(), task.getOriginalSrtFilePath());
