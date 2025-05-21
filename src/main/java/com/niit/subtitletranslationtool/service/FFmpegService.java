@@ -12,7 +12,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class FFmpegService {
@@ -110,5 +112,39 @@ public class FFmpegService {
             return false;
         }
         return true;
+    }
+
+    /**
+     * 压制字幕到视频
+     * @param videoPath 原始视频路径
+     * @param srtPath 翻译后的SRT路径
+     * @param outputPath 输出视频路径
+     * @return 成功状态
+     */
+    public boolean burnSubtitles(String videoPath, String srtPath, String outputPath) {
+        // 处理Windows路径转义（替换反斜杠）
+        String escapedSrt = srtPath.replace("\\", "/");
+        String escapedVideo = videoPath.replace("\\", "/");
+
+        List<String> command = Arrays.asList(
+                "ffmpeg",
+                "-i", escapedVideo,
+                "-vf", "subtitles=" + escapedSrt,  // ffmpeg字幕滤镜
+                "-y",  // 覆盖已存在文件
+                outputPath.replace("\\", "/")
+        );
+
+        try {
+            Process process = new ProcessBuilder(command)
+                    .redirectErrorStream(true)
+                    .start();
+
+            // 等待处理完成（设置合理超时，如30分钟）
+            boolean success = process.waitFor(30, TimeUnit.MINUTES);
+            return success && process.exitValue() == 0;
+        } catch (Exception e) {
+            logger.error("字幕压制失败: {}", command, e);
+            return false;
+        }
     }
 }

@@ -43,7 +43,9 @@ public class VideoUploadController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<UploadResponse> handleFileUpload(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<UploadResponse> handleFileUpload(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(required = false, defaultValue = "false") boolean burnSubtitles) {  // 新增参数
         try {
             // 1. 生成唯一文件名（避免覆盖）
             String uniquePrefix = UUID.randomUUID().toString() + "_";
@@ -58,6 +60,10 @@ public class VideoUploadController {
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
                     .build();
+
+            // 保存用户压制选择到任务
+            task.setBurnSubtitles(burnSubtitles);  // 需在Task实体添加该字段
+
 
             // 3. 插入数据库（自增ID生效）
             taskMapper.insertTask(task);

@@ -31,6 +31,7 @@ mybatis:
 file:
   upload-dir: uploads/
   translated-srt-dir: "temp/srt_translated/"
+  subtitled-video-dir: "outputs/video_subtitled/"  # 新增压制视频存储目录
 
 temp:
   audio-dir: temp/audio/

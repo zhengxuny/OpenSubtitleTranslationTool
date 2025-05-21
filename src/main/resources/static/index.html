@@ -31,6 +31,11 @@
         <form id="uploadForm" enctype="multipart/form-data">
             <input type="file" name="file" id="videoFile" accept="video/*" required>
             <button type="submit">上传视频</button>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="burnSubtitles"> 同时压制字幕到视频
+                </label>
+            </div>
         </form>
 
         <!-- 任务状态显示区域（初始隐藏） -->
@@ -67,6 +72,8 @@
                 // 构建FormData对象
                 const formData = new FormData();
                 formData.append('file', fileInput.files[0]);
+                const burnSubtitles = document.getElementById('burnSubtitles').checked;
+                formData.append('burnSubtitles', burnSubtitles);  // 添加压制选项到请求
 
                 // 发送上传请求到后端
                 $.ajax({
@@ -75,6 +82,7 @@
                     data: formData,
                     processData: false, // 不处理数据（必须）
                     contentType: false, // 不设置Content-Type（必须）
+
                     success: function(response) {
                         if (!response.taskId) {
                             alert("上传失败: " + response.message);

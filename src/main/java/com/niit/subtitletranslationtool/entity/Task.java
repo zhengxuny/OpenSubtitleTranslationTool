@@ -18,7 +18,8 @@ public class Task {
     // 上传阶段必填字段（非空）
     private String originalVideoFilename;
     private String storedVideoFilename;
-    private String videoFilePath; // 视频文件完整路径
+    private String videoFilePath;// 视频文件完整路径
+    private boolean burnSubtitles; // 是否需要将字幕烧录到视频中
 
     // 后续阶段可选字段（可为空）
     private String extractedAudioFilename;
@@ -42,4 +43,6 @@ public class Task {
     private LocalDateTime createdAt = LocalDateTime.now(); // 创建时间默认当前时间
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now(); // 更新时间默认当前时间
+
+
 }

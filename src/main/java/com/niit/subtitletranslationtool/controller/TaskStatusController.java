@@ -80,4 +80,19 @@ public class TaskStatusController {
                         "attachment; filename=\"" + task.getTranslatedSrtFilename() + "\"")
                 .body(resource);
     }
+
+    // src/main/java/com/niit/subtitletranslationtool/controller/TaskStatusController.java
+    @GetMapping("/download/video/subtitled/{taskId}")
+    public ResponseEntity<Resource> downloadSubtitledVideo(@PathVariable Long taskId) {
+        Task task = taskMapper.findById(taskId);
+        if (task == null || task.getSubtitledVideoFilePath() == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Resource resource = new FileSystemResource(task.getSubtitledVideoFilePath());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + task.getSubtitledVideoFilename() + "\"")
+                .body(resource);
+    }
 }

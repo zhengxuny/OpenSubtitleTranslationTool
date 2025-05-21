@@ -15,6 +15,8 @@
         <result property="translatedSrtFilePath" column="translated_srt_file_path"/>
         <result property="subtitledVideoFilename" column="subtitled_video_filename"/>
         <result property="subtitledVideoFilePath" column="subtitled_video_file_path"/>
+        <!-- 新增burnSubtitles字段映射 -->
+        <result property="burnSubtitles" column="burn_subtitles"/>
         <!-- 使用EnumTypeHandler将枚举名称映射为数据库VARCHAR -->
         <result property="status" column="status" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
         <result property="errorMessage" column="error_message"/>
@@ -32,14 +34,18 @@
             video_file_path,
             status,
             created_at,
-            updated_at
+            updated_at,
+            <!-- 新增burn_subtitles列 -->
+            burn_subtitles
         ) VALUES (
             #{originalVideoFilename},
             #{storedVideoFilename},
             #{videoFilePath},
             #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler}, <!-- 枚举名称转字符串 -->
             #{createdAt},
-            #{updatedAt}
+            #{updatedAt},
+            <!-- 新增burnSubtitles参数 -->
+            #{burnSubtitles}
         )
     </insert>
 
@@ -61,6 +67,8 @@
             translated_srt_file_path = #{translatedSrtFilePath},
             subtitled_video_filename = #{subtitledVideoFilename},
             subtitled_video_file_path = #{subtitledVideoFilePath},
+            <!-- 新增burn_subtitles更新 -->
+            burn_subtitles = #{burnSubtitles},
             status = #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler}, <!-- 枚举名称转字符串 -->
             error_message = #{errorMessage},
             detected_language = #{detectedLanguage},
