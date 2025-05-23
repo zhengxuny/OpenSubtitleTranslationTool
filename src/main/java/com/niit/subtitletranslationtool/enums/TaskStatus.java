@@ -18,5 +18,6 @@ public enum TaskStatus {
     SUBTITLE_BURNING,     // 字幕压制中
     COMPLETED,            // 任务完成
     FAILED,               // 任务失败（通用失败状态）
-    CANCELLED             // 任务取消
+    CANCELLED,             // 任务取消
+
 }
