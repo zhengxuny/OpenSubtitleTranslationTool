@@ -3,6 +3,7 @@ package com.niit.subtitletranslationtool.controller;
 import com.niit.subtitletranslationtool.dto.AuthResponse;
 import com.niit.subtitletranslationtool.dto.LoginRequest;
 import com.niit.subtitletranslationtool.dto.RegisterRequest;
+import com.niit.subtitletranslationtool.dto.TopUpRequest;
 import com.niit.subtitletranslationtool.entity.User;
 import com.niit.subtitletranslationtool.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,5 +81,27 @@ public class AuthController {
             // 认证失败，返回一个包含错误消息的 AuthResponse 对象。
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new AuthResponse("登录失败: " + e.getMessage(), null, null));
         }
+    }
+
+
+    @PostMapping("/topup")
+    public ResponseEntity<AuthResponse> topUp(@RequestBody TopUpRequest request) {
+        // 从SecurityContext获取当前登录用户的用户名（已认证用户）
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        // 改为调用仅查询用户的方法（无需密码验证）
+        User user = userService.getUserByUsername(username);  // 替换原authenticateUser调用
+
+        // 调用充值服务
+        User updatedUser = userService.topUpUserBalance(user.getId(), request.getAmount());
+
+        // 返回响应
+        AuthResponse response = new AuthResponse(
+                "充值成功，当前余额：" + updatedUser.getBalance(),
+                updatedUser.getId(),
+                updatedUser.getUsername()
+        );
+        return ResponseEntity.ok(response);
     }
 }

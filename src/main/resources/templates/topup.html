@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>账户充值</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script> <!-- 引入Axios库 -->
+</head>
+<body>
+    <h1>账户充值</h1>
+    <form id="topUpForm">
+        <label for="amount">充值金额（元）:</label>
+        <input type="number" step="0.01" id="amount" name="amount" required>
+        <button type="button" onclick="submitTopUp()">确认充值</button>
+    </form>
+    <p th:if="${param.success}" style="color: green;">充值成功！</p>
+    <p th:if="${param.error}" style="color: red;">充值失败，请检查金额是否合法。</p>
+
+    <script>
+        function submitTopUp() {
+            // 获取输入的金额
+            const amount = document.getElementById('amount').value;
+
+            // 使用Axios发送JSON请求
+            axios.post('/api/auth/topup', {
+                amount: parseFloat(amount)
+            }, {
+                headers: {
+                    'Content-Type': 'application/json' // 明确指定JSON格式
+                }
+            })
+            .then(response => {
+                window.location.href = '/topup?success'; // 跳转回充值页面并显示成功
+            })
+            .catch(error => {
+                window.location.href = '/topup?error'; // 显示失败
+            });
+        }
+    </script>
+</body>
+</html>

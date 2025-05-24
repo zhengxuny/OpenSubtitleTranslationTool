@@ -101,4 +101,41 @@ public class UserService implements UserDetailsService {
         }
         return user; // 返回认证成功的用户实体。
     }
+
+        /**
+         * 用户充值功能。
+         * @param userId 用户ID。
+         * @param amount 充值金额。
+         * @return 充值后的用户实体。
+         */
+    @Transactional
+    public User topUpUserBalance(Long userId, BigDecimal amount) {
+        // 校验金额合法性（示例：金额必须大于0）
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("充值金额必须大于0");
+        }
+        // 查询用户
+        User user = userMapper.findById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+        // 更新余额（原余额 + 充值金额）
+        user.setBalance(user.getBalance().add(amount));
+        userMapper.updateUser(user); // 使用现有updateUser方法更新数据库
+
+        return user;
+    }
+
+    /**
+     * 根据用户名获取用户信息（无需密码验证）
+     * @param username 用户名
+     * @return 用户实体
+     */
+    public User getUserByUsername(String username) {
+        User user = userMapper.findByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+        return user;
+    }
 }

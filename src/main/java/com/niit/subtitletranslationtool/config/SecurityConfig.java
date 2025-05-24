@@ -67,6 +67,8 @@ public class SecurityConfig {
 
                 // 配置URL访问权限
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/topup").authenticated() // 充值页面需登录
+                        .requestMatchers("/api/auth/topup").authenticated() // 充值接口需登录
                         // 放行注册和登录API请求，无需认证
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                         // 放行注册页面和登录页面请求，无需认证

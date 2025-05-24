@@ -43,4 +43,11 @@ public class ViewController {
     public String showIndexPage() {
         return "index"; // 返回 index.html 模板
     }
+
+
+    // 新增充值页面路由
+    @GetMapping("/topup")
+    public String showTopUpPage() {
+        return "topup"; // 返回topup.html模板
+    }
 }
