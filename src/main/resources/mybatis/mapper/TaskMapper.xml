@@ -1,31 +1,54 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+    TaskMapper.xml
+    此文件定义了Task实体类的MyBatis映射规则，包括数据库表的字段与实体类属性的对应关系、
+    以及对task表进行CRUD（创建、读取、更新、删除）操作的SQL语句。
+-->
 <mapper namespace="com.niit.subtitletranslationtool.mapper.TaskMapper">
 
+    <!--
+        TaskResultMap
+        定义了数据库表task与com.niit.subtitletranslationtool.entity.Task实体类之间的映射关系。
+        用于将查询结果集中的字段值映射到Task对象的相应属性中。
+    -->
     <resultMap id="TaskResultMap" type="com.niit.subtitletranslationtool.entity.Task">
+        <!-- id：指定主键字段的映射 -->
         <id property="id" column="id"/>
-        <result property="originalVideoFilename" column="original_video_filename"/>
-        <result property="storedVideoFilename" column="stored_video_filename"/>
-        <result property="videoFilePath" column="video_file_path"/>
-        <result property="extractedAudioFilename" column="extracted_audio_filename"/>
-        <result property="extractedAudioFilePath" column="extracted_audio_file_path"/>
-        <result property="originalSrtFilename" column="original_srt_filename"/>
-        <result property="originalSrtFilePath" column="original_srt_file_path"/>
-        <result property="translatedSrtFilename" column="translated_srt_filename"/>
-        <result property="translatedSrtFilePath" column="translated_srt_file_path"/>
-        <result property="subtitledVideoFilename" column="subtitled_video_filename"/>
-        <result property="subtitledVideoFilePath" column="subtitled_video_file_path"/>
-        <!-- 新增burnSubtitles字段映射 -->
-        <result property="burnSubtitles" column="burn_subtitles"/>
-        <!-- 使用EnumTypeHandler将枚举名称映射为数据库VARCHAR -->
+        <!-- result：指定普通字段的映射 -->
+        <result property="originalVideoFilename" column="original_video_filename"/> <!-- 原始视频文件名 -->
+        <result property="storedVideoFilename" column="stored_video_filename"/>       <!-- 存储的视频文件名 -->
+        <result property="videoFilePath" column="video_file_path"/>                 <!-- 视频文件路径 -->
+        <result property="extractedAudioFilename" column="extracted_audio_filename"/>   <!-- 提取的音频文件名 -->
+        <result property="extractedAudioFilePath" column="extracted_audio_file_path"/> <!-- 提取的音频文件路径 -->
+        <result property="originalSrtFilename" column="original_srt_filename"/>       <!-- 原始SRT字幕文件名 -->
+        <result property="originalSrtFilePath" column="original_srt_file_path"/>     <!-- 原始SRT字幕文件路径 -->
+        <result property="translatedSrtFilename" column="translated_srt_filename"/>   <!-- 翻译后的SRT字幕文件名 -->
+        <result property="translatedSrtFilePath" column="translated_srt_file_path"/> <!-- 翻译后的SRT字幕文件路径 -->
+        <result property="subtitledVideoFilename" column="subtitled_video_filename"/>   <!-- 合成字幕后的视频文件名 -->
+        <result property="subtitledVideoFilePath" column="subtitled_video_file_path"/> <!-- 合成字幕后的视频文件路径 -->
+        <result property="burnSubtitles" column="burn_subtitles"/>                   <!-- 是否硬字幕 -->
+        <!--
+            status: 任务状态。
+            使用EnumTypeHandler将枚举类型名称映射为数据库中的VARCHAR类型。
+            EnumTypeHandler是MyBatis提供的类型处理器，用于处理枚举类型与数据库字段之间的转换。
+        -->
         <result property="status" column="status" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
-        <result property="errorMessage" column="error_message"/>
-        <result property="detectedLanguage" column="detected_language"/>
-        <result property="languageProbability" column="language_probability"/>
-        <result property="createdAt" column="created_at"/>
-        <result property="updatedAt" column="updated_at"/>
+        <result property="errorMessage" column="error_message"/>                   <!-- 错误信息 -->
+        <result property="detectedLanguage" column="detected_language"/>             <!-- 检测到的语言 -->
+        <result property="languageProbability" column="language_probability"/>         <!-- 语言识别概率 -->
+        <result property="createdAt" column="created_at"/>                         <!-- 创建时间 -->
+        <result property="updatedAt" column="updated_at"/>                         <!-- 更新时间 -->
     </resultMap>
 
+    <!--
+        insertTask
+        向task表插入一条新纪录。
+        parameterType：指定输入参数的类型为com.niit.subtitletranslationtool.entity.Task。
+        useGeneratedKeys：设置为true，表示使用数据库自动生成的主键。
+        keyProperty：指定Task对象中用于接收自动生成主键的属性为id。
+        keyColumn：指定数据库表中主键字段的名称为id。
+    -->
     <insert id="insertTask" parameterType="com.niit.subtitletranslationtool.entity.Task"
             useGeneratedKeys="true" keyProperty="id" keyColumn="id">
         INSERT INTO task (
@@ -35,24 +58,37 @@
             status,
             created_at,
             updated_at,
-            <!-- 新增burn_subtitles列 -->
             burn_subtitles
         ) VALUES (
             #{originalVideoFilename},
             #{storedVideoFilename},
             #{videoFilePath},
-            #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler}, <!-- 枚举名称转字符串 -->
+            <!--
+                #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler}
+                将Task对象的status属性（枚举类型）转换为数据库可以存储的字符串类型。
+                typeHandler指定了用于处理枚举类型转换的类型处理器。
+            -->
+            #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
             #{createdAt},
             #{updatedAt},
-            <!-- 新增burnSubtitles参数 -->
             #{burnSubtitles}
         )
     </insert>
 
+    <!--
+        findById
+        根据ID从task表查询一条记录。
+        resultMap：指定查询结果集使用TaskResultMap进行映射。
+    -->
     <select id="findById" resultMap="TaskResultMap">
         SELECT * FROM task WHERE id = #{id}
     </select>
 
+    <!--
+        updateTask
+        更新task表中已存在的记录。
+        parameterType：指定输入参数的类型为com.niit.subtitletranslationtool.entity.Task。
+    -->
     <update id="updateTask" parameterType="com.niit.subtitletranslationtool.entity.Task">
         UPDATE task
         SET
@@ -67,13 +103,17 @@
             translated_srt_file_path = #{translatedSrtFilePath},
             subtitled_video_filename = #{subtitledVideoFilename},
             subtitled_video_file_path = #{subtitledVideoFilePath},
-            <!-- 新增burn_subtitles更新 -->
             burn_subtitles = #{burnSubtitles},
-            status = #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler}, <!-- 枚举名称转字符串 -->
+            <!--
+                #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler}
+                将Task对象的status属性（枚举类型）转换为数据库可以存储的字符串类型。
+                typeHandler指定了用于处理枚举类型转换的类型处理器。
+            -->
+            status = #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
             error_message = #{errorMessage},
             detected_language = #{detectedLanguage},
             language_probability = #{languageProbability},
-            updated_at = #{updatedAt} <!-- 手动更新时间，或依赖数据库ON UPDATE（需调整） -->
+            updated_at = #{updatedAt}
         WHERE
             id = #{id}
     </update>

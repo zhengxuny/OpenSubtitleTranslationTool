@@ -1,9 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+    命名空间，对应于Mapper接口，用于绑定Mapper接口和Mapper.xml文件。
+    例如：namespace="com.niit.subtitletranslationtool.mapper.UserMapper"，
+    表示此Mapper.xml文件对应于UserMapper接口。
+-->
 <mapper namespace="com.niit.subtitletranslationtool.mapper.UserMapper">
 
+    <!--
+        resultMap：结果映射，用于定义数据库字段和实体类属性之间的映射关系。
+        id：resultMap的唯一标识符，可以在select语句中引用。
+        type：实体类的完整类名。
+    -->
     <resultMap id="UserResultMap" type="com.niit.subtitletranslationtool.entity.User">
+        <!-- id标签：定义主键字段的映射 -->
         <id property="id" column="id"/>
+        <!-- result标签：定义普通字段的映射 -->
         <result property="username" column="username"/>
         <result property="password" column="password"/>
         <result property="email" column="email"/>
@@ -12,6 +24,14 @@
         <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
+    <!--
+        insert：插入语句，用于向数据库中插入数据。
+        id：insert语句的唯一标识符，对应于Mapper接口中的方法名。
+        parameterType：输入参数的类型，这里是User实体类。
+        useGeneratedKeys：是否使用数据库自动生成的主键。
+        keyProperty：实体类中对应主键的属性名。
+        keyColumn：数据库表中对应主键的字段名。
+    -->
     <insert id="insertUser" parameterType="com.niit.subtitletranslationtool.entity.User"
             useGeneratedKeys="true" keyProperty="id" keyColumn="id">
         INSERT INTO user (
@@ -31,24 +51,36 @@
         )
     </insert>
 
+    <!--
+        select：查询语句，用于从数据库中查询数据。
+        id：select语句的唯一标识符，对应于Mapper接口中的方法名。
+        resultMap：指定结果映射，将查询结果映射到UserResultMap定义的实体类属性中。
+    -->
     <select id="findByUsername" resultMap="UserResultMap">
         SELECT id, username, password, email, balance, created_at, updated_at
         FROM user
         WHERE username = #{username}
     </select>
 
+    <!-- 根据邮箱查询用户 -->
     <select id="findByEmail" resultMap="UserResultMap">
         SELECT id, username, password, email, balance, created_at, updated_at
         FROM user
         WHERE email = #{email}
     </select>
 
+    <!-- 根据ID查询用户 -->
     <select id="findById" resultMap="UserResultMap">
         SELECT id, username, password, email, balance, created_at, updated_at
         FROM user
         WHERE id = #{id}
     </select>
 
+    <!--
+        update：更新语句，用于更新数据库中的数据。
+        id：update语句的唯一标识符，对应于Mapper接口中的方法名。
+        parameterType：输入参数的类型，这里是User实体类。
+    -->
     <update id="updateUser" parameterType="com.niit.subtitletranslationtool.entity.User">
         UPDATE user
         SET
