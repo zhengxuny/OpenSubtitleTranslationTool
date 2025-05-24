@@ -2,36 +2,112 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>账户充值</title>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script> <!-- 引入Axios库 -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- 复用index.html的CSS变量和核心样式 -->
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --success-color: #4CAF50;
+            --warning-color: #FF9800;
+            --danger-color: #f44336;
+            --light-gray: #f5f5f5;
+            --medium-gray: #eeeeee;
+            --dark-gray: #616161;
+        }
+
+        body {
+            background-color: var(--light-gray);
+            padding: 2rem 1rem;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+
+        .topup-section {
+            background: var(--light-gray);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .form-group {
+            margin: 1.5rem 0;
+        }
+
+        .form-group input {
+            width: 60%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--medium-gray);
+            border-radius: 6px;
+            font-size: 1rem;
+            margin-right: 1rem;
+        }
+
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            font-size: 1rem;
+        }
+
+        .action-btn:hover {
+            box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .message {
+            margin-top: 1.5rem;
+            font-size: 1.1rem;
+        }
+    </style>
 </head>
 <body>
-    <h1>账户充值</h1>
-    <form id="topUpForm">
-        <label for="amount">充值金额（元）:</label>
-        <input type="number" step="0.01" id="amount" name="amount" required>
-        <button type="button" onclick="submitTopUp()">确认充值</button>
-    </form>
-    <p th:if="${param.success}" style="color: green;">充值成功！</p>
-    <p th:if="${param.error}" style="color: red;">充值失败，请检查金额是否合法。</p>
+    <!-- 添加统一容器 -->
+    <div class="container">
+        <h1 style="color: var(--dark-gray); font-weight: 500; font-size: 1.75rem; margin-bottom: 2rem; text-align: center;">账户充值</h1>
+
+        <!-- 复用index.html的表单区域样式 -->
+        <div class="topup-section">
+            <form id="topUpForm">
+                <div class="form-group">
+                    <label for="amount" style="color: var(--dark-gray); font-weight: 500; margin-right: 0.5rem;">充值金额（元）:</label>
+                    <input type="number" step="0.01" id="amount" name="amount" required>
+                    <button type="button" class="action-btn" onclick="submitTopUp()">确认充值</button>
+                </div>
+            </form>
+
+            <!-- 提示信息样式优化 -->
+            <p th:if="${param.success}" class="message" style="color: var(--success-color);">充值成功！</p>
+            <p th:if="${param.error}" class="message" style="color: var(--danger-color);">充值失败，请检查金额是否合法。</p>
+        </div>
+    </div>
 
     <script>
+        // 保持原有功能逻辑不变
         function submitTopUp() {
-            // 获取输入的金额
             const amount = document.getElementById('amount').value;
-
-            // 使用Axios发送JSON请求
             axios.post('/api/auth/topup', {
                 amount: parseFloat(amount)
             }, {
-                headers: {
-                    'Content-Type': 'application/json' // 明确指定JSON格式
-                }
+                headers: { 'Content-Type': 'application/json' }
             })
             .then(response => {
-                window.location.href = '/topup?success'; // 跳转回充值页面并显示成功
+                window.location.href = '/topup?success';
             })
             .catch(error => {
-                window.location.href = '/topup?error'; // 显示失败
+                window.location.href = '/topup?error';
             });
         }
     </script>
