@@ -28,6 +28,7 @@
         <result property="subtitledVideoFilename" column="subtitled_video_filename"/>   <!-- 合成字幕后的视频文件名 -->
         <result property="subtitledVideoFilePath" column="subtitled_video_file_path"/> <!-- 合成字幕后的视频文件路径 -->
         <result property="burnSubtitles" column="burn_subtitles"/>                   <!-- 是否硬字幕 -->
+        <result property="userId" column="user_id"/>
         <!--
             status: 任务状态。
             使用EnumTypeHandler将枚举类型名称映射为数据库中的VARCHAR类型。
@@ -58,7 +59,8 @@
             status,
             created_at,
             updated_at,
-            burn_subtitles
+            burn_subtitles,
+            user_id  <!-- 正确添加Task关联的user_id -->
         ) VALUES (
             #{originalVideoFilename},
             #{storedVideoFilename},
@@ -71,7 +73,8 @@
             #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
             #{createdAt},
             #{updatedAt},
-            #{burnSubtitles}
+            #{burnSubtitles},
+            #{userId}  <!-- 正确使用Task实体的userId属性 -->
         )
     </insert>
 

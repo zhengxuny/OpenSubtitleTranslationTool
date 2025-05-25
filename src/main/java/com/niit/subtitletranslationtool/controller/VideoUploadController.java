@@ -2,18 +2,24 @@ package com.niit.subtitletranslationtool.controller;
 
 import com.niit.subtitletranslationtool.dto.UploadResponse;
 import com.niit.subtitletranslationtool.entity.Task;
+import com.niit.subtitletranslationtool.entity.User;
 import com.niit.subtitletranslationtool.enums.TaskStatus;
 import com.niit.subtitletranslationtool.mapper.TaskMapper;
 import com.niit.subtitletranslationtool.service.AsyncVideoProcessingService;
 import com.niit.subtitletranslationtool.service.StorageService;
+import com.niit.subtitletranslationtool.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -37,6 +43,9 @@ public class VideoUploadController {
 
     // 通过配置文件读取文件上传目录，并将其转换为绝对路径使用
     private final Path uploadDir;
+
+    @Autowired
+    private UserService userService; // 注入 UserService
 
     /**
      * 构造函数，注入必要服务实例和上传目录配置。
@@ -71,6 +80,17 @@ public class VideoUploadController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(required = false, defaultValue = "false") boolean burnSubtitles) {
         try {
+            // 获取当前用户信息
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userService.getUserByUsername(username);
+
+            // 检查余额是否≥10元
+            if (user.getBalance().compareTo(BigDecimal.TEN) < 0) {
+                return ResponseEntity.badRequest().body(
+                        new UploadResponse(null, "余额不足（需≥10元）", file.getOriginalFilename(), null)
+                );
+            }
             // 生成唯一文件名，避免文件覆盖问题
             String uniquePrefix = UUID.randomUUID().toString() + "_";
             String storedFilename = storageService.store(file, uniquePrefix);
@@ -83,6 +103,7 @@ public class VideoUploadController {
                     .status(TaskStatus.UPLOADED)                      // 设置任务状态为已上传
                     .createdAt(LocalDateTime.now())                   // 设置任务创建时间
                     .updatedAt(LocalDateTime.now())                   // 设置任务最近一次更新时间
+                    .userId(user.getId())  // 新增
                     .build();
 
             // 将用户的选择（是否烧录字幕）保存到任务实体中

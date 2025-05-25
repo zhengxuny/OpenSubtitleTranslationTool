@@ -53,6 +53,7 @@ public class Task {
     private String detectedLanguage;
     // languageProbability 定义了检测语言的概率值，值的范围在0到1之间。
     private Float languageProbability;
+    private Long userId;  // 新增：关联用户ID
 
     // createdAt 定义了任务创建的时间，默认值为对象创建后的当前时间。
     @Builder.Default // 使用Builder模式创建对象时，createdAt默认值为当前时间

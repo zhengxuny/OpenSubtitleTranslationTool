@@ -12,6 +12,8 @@ import org.springframework.http.*;  // 导入Spring框架的HTTP相关类，如H
 import org.springframework.stereotype.Service;  // 导入Spring框架的Service注解，标记一个类为服务类
 import org.springframework.web.client.RestTemplate;  // 导入Spring框架的RestTemplate类，用于发起HTTP请求
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;  // 导入StandardCharsets类，用于指定字符编码
 import java.nio.file.Files;  // 导入Files类，用于文件操作
 import java.nio.file.Path;  // 导入Path接口，表示文件或目录的路径
@@ -22,7 +24,7 @@ import java.util.concurrent.ExecutorService;  // 导入ExecutorService接口，�
 import java.util.concurrent.Executors;  // 导入Executors类，用于创建线程池
 import java.util.stream.Collectors;  // 导入Collectors类，用于集合操作
 import java.util.stream.IntStream;  // 导入IntStream类，用于处理整数流
-
+import com.niit.subtitletranslationtool.service.UserService; // 导入 UserService
 /**
  * TranslationService 类负责处理字幕文件的翻译任务。
  * 它使用豆包（Doubao）API 进行翻译，并将翻译后的字幕文件保存到指定目录。
@@ -43,6 +45,9 @@ public class TranslationService {
     private final ExecutorService translationExecutor = Executors.newFixedThreadPool(5);  // 创建一个固定大小的线程池，用于并发翻译
     private static final int CHUNK_SIZE = 15;  // 每段15条字幕，将字幕分割成小块进行翻译
     private static final int MAX_RETRIES = 1;  // 最大重试次数，如果翻译失败，会进行重试
+
+    @Autowired
+    private UserService userService; // 注入 UserService
 
     /**
      * 构造函数，使用Autowired注解进行依赖注入，并从配置文件中读取相关配置。
@@ -121,6 +126,21 @@ public class TranslationService {
         task.setTranslatedSrtFilePath(translatedPath.toString());  // 设置任务的翻译后SRT文件路径
         task.setStatus(TaskStatus.TRANSLATED);  // 设置任务状态为已翻译
         taskMapper.updateTask(task);  // 更新任务状态到数据库
+
+        // 统计翻译后总字数（中/英文均按1字计算）
+        int totalWords = translatedEntries.stream()
+                .mapToInt(entry -> entry.content().length())
+                .sum();
+
+        // 计算费用（100字=0.1元，保留2位小数）
+        BigDecimal cost = BigDecimal.valueOf(totalWords)
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(0.1));
+
+        // 执行扣费
+        userService.deductBalance(task.getUserId(), cost);
+        //将扣费消息和扣费金额打印到控制台
+        System.out.println("扣费成功: " + "扣费金额: " + cost);
     }
 
     /**

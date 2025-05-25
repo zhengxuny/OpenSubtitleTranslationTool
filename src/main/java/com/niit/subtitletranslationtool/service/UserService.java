@@ -138,4 +138,24 @@ public class UserService implements UserDetailsService {
         }
         return user;
     }
+
+        @Transactional
+    public User deductBalance(Long userId, BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("扣除金额必须大于0");
+        }
+
+        User user = userMapper.findById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+
+        if (user.getBalance().compareTo(amount) < 0) {
+            throw new RuntimeException("余额不足，当前余额：" + user.getBalance());
+        }
+
+        user.setBalance(user.getBalance().subtract(amount));
+        userMapper.updateUser(user);
+        return user;
+    }
 }
