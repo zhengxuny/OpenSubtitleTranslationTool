@@ -92,31 +92,38 @@
     <update id="updateTask" parameterType="com.niit.subtitletranslationtool.entity.Task">
         UPDATE task
         SET
-            original_video_filename = #{originalVideoFilename},
-            stored_video_filename = #{storedVideoFilename},
-            video_file_path = #{videoFilePath},
-            extracted_audio_filename = #{extractedAudioFilename},
-            extracted_audio_file_path = #{extractedAudioFilePath},
-            original_srt_filename = #{originalSrtFilename},
-            original_srt_file_path = #{originalSrtFilePath},
-            translated_srt_filename = #{translatedSrtFilename},
-            translated_srt_file_path = #{translatedSrtFilePath},
-            subtitled_video_filename = #{subtitledVideoFilename},
-            subtitled_video_file_path = #{subtitledVideoFilePath},
-            burn_subtitles = #{burnSubtitles},
-            <!--
-                #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler}
-                将Task对象的status属性（枚举类型）转换为数据库可以存储的字符串类型。
-                typeHandler指定了用于处理枚举类型转换的类型处理器。
-            -->
-            status = #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
-            error_message = #{errorMessage},
-            detected_language = #{detectedLanguage},
-            language_probability = #{languageProbability},
-            updated_at = #{updatedAt},
-            summary = #{summary}
+        original_video_filename = #{originalVideoFilename},
+        stored_video_filename = #{storedVideoFilename},
+        video_file_path = #{videoFilePath},
+        extracted_audio_filename = #{extractedAudioFilename},
+        extracted_audio_file_path = #{extractedAudioFilePath},
+        original_srt_filename = #{originalSrtFilename},
+        original_srt_file_path = #{originalSrtFilePath},
+        translated_srt_filename = #{translatedSrtFilename},
+        translated_srt_file_path = #{translatedSrtFilePath},
+        subtitled_video_filename = #{subtitledVideoFilename},
+        subtitled_video_file_path = #{subtitledVideoFilePath},
+        burn_subtitles = #{burnSubtitles},
+        <!--
+            #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler}
+            将Task对象的status属性（枚举类型）转换为数据库可以存储的字符串类型。
+            typeHandler指定了用于处理枚举类型转换的类型处理器。
+        -->
+        status = #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+        error_message = #{errorMessage},
+        detected_language = #{detectedLanguage},
+        language_probability = #{languageProbability},
+        updated_at = #{updatedAt},
+        summary = #{summary}
         WHERE
-            id = #{id}
+        id = #{id}
     </update>
+
+    <!-- Add this to the TaskMapper.xml -->
+    <select id="findByUserId" resultMap="TaskResultMap">
+        SELECT * FROM task
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
 
 </mapper>

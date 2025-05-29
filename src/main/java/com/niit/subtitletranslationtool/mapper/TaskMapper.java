@@ -2,6 +2,7 @@ package com.niit.subtitletranslationtool.mapper;
 
 import com.niit.subtitletranslationtool.entity.Task;
 import org.apache.ibatis.annotations.Mapper;
+import java.util.List;
 
 /**
  * TaskMapper接口用于定义操作任务数据的CRUD方法
@@ -30,4 +31,12 @@ public interface TaskMapper {
      * @param task: 包含需要更新的任务信息的Task对象
      */
     void updateTask(Task task);
+
+    /**
+     * 根据用户ID查询所有任务信息
+     * 此方法将用于获取特定用户的所有任务
+     * @param userId: 用户的唯一标识符
+     * @return: 返回List<Task>对象，包含了查询到的任务信息；如果没有找到相关的任务，则返回空列表
+     */
+    List<Task> findByUserId(Long userId);
 }

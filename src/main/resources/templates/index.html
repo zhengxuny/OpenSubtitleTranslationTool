@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>视频字幕翻译工具</title>
+    <title>字幕翻译工具</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
@@ -45,272 +45,112 @@
         }
 
         .upload-section {
-            background: var(--light-gray);
-            border-radius: 8px;
-            padding: 2rem;
-            text-align: center;
-            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 0 0 2rem 0;
         }
 
-        .custom-file-input {
-            display: none;
-        }
-
-        .file-label {
+        .upload-button {
             display: inline-block;
             padding: 0.75rem 1.5rem;
             background: var(--primary-color);
             color: white;
             border-radius: 6px;
+            text-decoration: none;
             cursor: pointer;
             transition: all 0.2s ease;
-            margin-bottom: 1rem;
         }
 
-        .file-label:hover {
+        .upload-button:hover {
             box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
             transform: translateY(-1px);
         }
 
-        .form-group {
-            margin-top: 1.5rem;
-        }
-
-        .form-group label {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--dark-gray);
-            gap: 0.5rem;
-        }
-
-        #burnSubtitles {
-            width: 1.25rem;
-            height: 1.25rem;
-        }
-
-        .status-area {
-            background: var(--light-gray);
-            border-radius: 8px;
-            padding: 2rem;
-            display: none;
-        }
-
-        .status-item {
-            margin-bottom: 1rem;
-            padding: 1rem;
+        .task-table {
+            width: 100%;
+            border-collapse: collapse;
             background: white;
-            border-radius: 6px;
+            border-radius: 8px;
+            overflow: hidden;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
-        .status-item span {
-            color: var(--dark-gray);
-            font-weight: 500;
-        }
-
-        .damage-prompt {
-            background: #fff3e0;
-            border-left: 4px solid var(--warning-color);
+        .task-table th, .task-table td {
             padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 4px;
-            display: none;
+            border-bottom: 1px solid var(--medium-gray);
+            text-align: left;
         }
 
-        .damage-prompt p {
+        .task-table th {
+            background-color: var(--light-gray);
             color: var(--dark-gray);
-            margin-bottom: 1rem;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .action-btn {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
             font-weight: 500;
         }
 
-        .action-btn.continue {
-            background: var(--success-color);
-            color: white;
+        .task-table tr:last-child td {
+            border-bottom: none;
         }
 
-        .action-btn.cancel {
-            background: var(--danger-color);
-            color: white;
+        .no-tasks {
+            background: var(--light-gray);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            color: var(--dark-gray);
         }
 
-        .action-btn:hover {
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transform: translateY(-1px);
-        }
-
-        .download-link {
-            display: inline-block;
-            padding: 0.75rem 1.5rem;
-            background: var(--success-color);
-            color: white;
-            border-radius: 6px;
+        .no-tasks a {
+            color: var(--primary-color);
             text-decoration: none;
-            margin-top: 1rem;
-            transition: all 0.2s ease;
-            display: none;
+            font-weight: 500;
         }
 
-        .download-link:hover {
-            box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
-            transform: translateY(-1px);
+        .no-tasks a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>视频字幕翻译工具</h1>
+        <h1>欢迎，<span class="username" th:text="${username}"></span>！</h1>
 
-        <!-- 上传表单 -->
         <div class="upload-section">
-            <form id="uploadForm" enctype="multipart/form-data">
-                <input type="file" name="file" id="videoFile" class="custom-file-input" accept="video/*" required>
-                <label for="videoFile" class="file-label">选择视频文件</label>
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="burnSubtitles"> 同时压制字幕到视频
-                    </label>
-                </div>
-                <button type="submit" class="file-label" style="background: var(--success-color); margin-top: 1rem;">开始上传</button>
-            </form>
-            <div style="text-align: center; margin-top: 2rem;">
-                <a href="/topup">余额不足？立即充值</a>
-            </div>
+            <h2 style="color: var(--dark-gray); font-weight: 500; font-size: 1.25rem;">您上传的视频</h2>
+            <a href="/upload" class="upload-button">上传新视频</a>
         </div>
 
-        <!-- 任务状态显示区域 -->
-        <div class="status-area" id="statusArea">
-            <div class="status-item">
-                <p>任务ID: <span id="taskId"></span></p>
-            </div>
-            <div class="status-item">
-                <p>当前状态: <span id="currentStatus" style="color: var(--primary-color);">处理中...</span></p>
-            </div>
-            <div class="status-item" id="errorArea" style="display: none;">
-                <p>错误信息: <span id="errorMessage" style="color: var(--danger-color);"></span></p>
-            </div>
-
-
-            <!-- 损坏提示区域 -->
-            <div class="damage-prompt" id="damagePrompt">
-                <p>⚠️ 检测到视频文件损坏，可能影响后续处理（如音轨提取失败）</p>
-                <div class="button-group">
-                    <button class="action-btn continue" id="continueBtn">继续处理（忽略损坏）</button>
-                    <button class="action-btn cancel" id="cancelBtn">取消任务</button>
-                </div>
-            </div>
-
-            <!-- 下载链接 -->
-            <a class="download-link" id="downloadLink" href="#">下载翻译后的SRT文件</a>
-            <a class="download-link" id="videoDownloadLink" href="#">下载压制后的视频</a>
+        <div th:if="${tasks.empty}" class="no-tasks">
+            <p>未找到已上传的视频。</p>
+            <p>点击<a href="/upload">此处</a>开始上传视频。</p>
         </div>
+
+        <table class="task-table" th:if="${!tasks.empty}">
+            <thead>
+                <tr>
+                    <th>原文件名</th>
+                    <th>状态</th>
+                    <th>上传时间</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="task : ${tasks}">
+                    <td>
+                        <a th:href="'/video-details/' + ${task.id}"
+                           th:text="${task.originalVideoFilename}"
+                           style="color: var(--primary-color); text-decoration: none; font-weight: 500;">
+                            示例视频.mp4
+                        </a>
+                    </td>
+                    <td th:text="${task.status.name()}" style="color: ${task.status == 'COMPLETED' ? 'var(--success-color)' : (task.status == 'FAILED' ? 'var(--danger-color)' : 'var(--dark-gray)')}">
+                        处理中
+                    </td>
+                    <td th:text="${#temporals.format(task.createdAt, 'yyyy-MM-dd HH:mm')}">
+                        2024-03-15 14:30
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
-
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            // 表单提交处理
-            $('#uploadForm').submit(function(e) {
-                e.preventDefault();
-                const fileInput = $('#videoFile')[0];
-                if (!fileInput.files.length) {
-                    alert("请选择视频文件");
-                    return;
-                }
-
-                const formData = new FormData();
-                formData.append('file', fileInput.files[0]);
-                formData.append('burnSubtitles', document.getElementById('burnSubtitles').checked);
-
-                $.ajax({
-                    url: '/api/video/upload',
-                    type: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function(response) {
-                        if (!response.taskId) {
-                            alert("上传失败: " + response.message);
-                            return;
-                        }
-                        $('#statusArea').show();
-                        $('#taskId').text(response.taskId);
-                        $('#currentStatus').text("已上传，等待处理...");
-                        pollTaskStatus(response.taskId);
-                    },
-                    error: function(xhr) {
-                        alert("上传失败: " + xhr.responseJSON.message);
-                    }
-                });
-            });
-
-            // 状态轮询
-            function pollTaskStatus(taskId) {
-                const interval = setInterval(() => {
-                    $.get(`/api/task/status/${taskId}`, function(task) {
-                        if (!task) {
-                            clearInterval(interval);
-                            $('#currentStatus').text("任务不存在");
-                            return;
-                        }
-
-                        $('#currentStatus').text(task.status);
-                        if (task.errorMessage) {
-                            $('#errorArea').show();
-                            $('#errorMessage').text(task.errorMessage);
-                        } else {
-                            $('#errorArea').hide();
-                        }
-
-                        // 处理损坏状态
-                        if (task.status === 'VIDEO_DAMAGED_AWAITING_USER_CHOICE') {
-                            $('#damagePrompt').show();
-                            clearInterval(interval);
-
-                            $('#continueBtn').click(() => {
-                                $.post(`/api/task/continue/${taskId}`, () => {
-                                    $('#damagePrompt').hide();
-                                    $('#currentStatus').text("任务已重新启动处理...");
-                                    pollTaskStatus(taskId);
-                                }).fail(xhr => alert("继续处理失败: " + xhr.responseJSON.message));
-                            });
-
-                            $('#cancelBtn').click(() => {
-                                $.post(`/api/task/cancel/${taskId}`, () => {
-                                    $('#damagePrompt').hide();
-                                    $('#currentStatus').text("任务已取消");
-                                    clearInterval(interval);
-                                }).fail(xhr => alert("取消任务失败: " + xhr.responseJSON.message));
-                            });
-                        }
-
-                        // 完成状态处理
-                        if (task.status === 'COMPLETED') {
-                            $('#downloadLink').attr('href', `/api/task/download/srt/translated/${taskId}`).show();
-                            if (task.burnSubtitles && task.subtitledVideoFilePath) {
-                                $('#videoDownloadLink').attr('href', `/api/task/download/video/subtitled/${taskId}`).show();
-                            }
-                            clearInterval(interval);
-                        } else if (['FAILED', 'CANCELLED'].includes(task.status)) {
-                            clearInterval(interval);
-                        }
-                    });
-                }, 3000);
-            }
-        });
-    </script>
 </body>
 </html>

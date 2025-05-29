@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>视频字幕翻译工具</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --success-color: #4CAF50;
+            --warning-color: #FF9800;
+            --danger-color: #f44336;
+            --light-gray: #f5f5f5;
+            --medium-gray: #eeeeee;
+            --dark-gray: #616161;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--light-gray);
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+
+        h1 {
+            color: var(--dark-gray);
+            font-weight: 500;
+            font-size: 1.75rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .upload-section {
+            background: var(--light-gray);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .custom-file-input {
+            display: none;
+        }
+
+        .file-label {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 1rem;
+        }
+
+        .file-label:hover {
+            box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .form-group {
+            margin-top: 1.5rem;
+        }
+
+        .form-group label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark-gray);
+            gap: 0.5rem;
+        }
+
+        #burnSubtitles {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        .status-area {
+            background: var(--light-gray);
+            border-radius: 8px;
+            padding: 2rem;
+            display: none;
+        }
+
+        .status-item {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .status-item span {
+            color: var(--dark-gray);
+            font-weight: 500;
+        }
+
+        .damage-prompt {
+            background: #fff3e0;
+            border-left: 4px solid var(--warning-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .damage-prompt p {
+            color: var(--dark-gray);
+            margin-bottom: 1rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .action-btn.continue {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .action-btn.cancel {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .action-btn:hover {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .download-link {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--success-color);
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            margin-top: 1rem;
+            transition: all 0.2s ease;
+            display: none;
+        }
+
+        .download-link:hover {
+            box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>视频字幕翻译工具</h1>
+
+        <!-- 上传表单 -->
+        <div class="upload-section">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <input type="file" name="file" id="videoFile" class="custom-file-input" accept="video/*" required>
+                <label for="videoFile" class="file-label">选择视频文件</label>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="burnSubtitles"> 同时压制字幕到视频
+                    </label>
+                </div>
+                <button type="submit" class="file-label" style="background: var(--success-color); margin-top: 1rem;">开始上传</button>
+            </form>
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="/topup">余额不足？立即充值</a>
+            </div>
+        </div>
+
+        <!-- 任务状态显示区域 -->
+        <div class="status-area" id="statusArea">
+            <div class="status-item">
+                <p>任务ID: <span id="taskId"></span></p>
+            </div>
+            <div class="status-item">
+                <p>当前状态: <span id="currentStatus" style="color: var(--primary-color);">处理中...</span></p>
+            </div>
+            <div class="status-item" id="errorArea" style="display: none;">
+                <p>错误信息: <span id="errorMessage" style="color: var(--danger-color);"></span></p>
+            </div>
+
+
+            <!-- 损坏提示区域 -->
+            <div class="damage-prompt" id="damagePrompt">
+                <p>⚠️ 检测到视频文件损坏，可能影响后续处理（如音轨提取失败）</p>
+                <div class="button-group">
+                    <button class="action-btn continue" id="continueBtn">继续处理（忽略损坏）</button>
+                    <button class="action-btn cancel" id="cancelBtn">取消任务</button>
+                </div>
+            </div>
+
+            <!-- 下载链接 -->
+            <a class="download-link" id="downloadLink" href="#">下载翻译后的SRT文件</a>
+            <a class="download-link" id="videoDownloadLink" href="#">下载压制后的视频</a>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // 表单提交处理
+            $('#uploadForm').submit(function(e) {
+                e.preventDefault();
+                const fileInput = $('#videoFile')[0];
+                if (!fileInput.files.length) {
+                    alert("请选择视频文件");
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                formData.append('burnSubtitles', document.getElementById('burnSubtitles').checked);
+
+                $.ajax({
+                    url: '/api/video/upload',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (!response.taskId) {
+                            alert("上传失败: " + response.message);
+                            return;
+                        }
+                        $('#statusArea').show();
+                        $('#taskId').text(response.taskId);
+                        $('#currentStatus').text("已上传，等待处理...");
+                        pollTaskStatus(response.taskId);
+                    },
+                    error: function(xhr) {
+                        alert("上传失败: " + xhr.responseJSON.message);
+                    }
+                });
+            });
+
+            // 状态轮询
+            function pollTaskStatus(taskId) {
+                const interval = setInterval(() => {
+                    $.get(`/api/task/status/${taskId}`, function(task) {
+                        if (!task) {
+                            clearInterval(interval);
+                            $('#currentStatus').text("任务不存在");
+                            return;
+                        }
+
+                        $('#currentStatus').text(task.status);
+                        if (task.errorMessage) {
+                            $('#errorArea').show();
+                            $('#errorMessage').text(task.errorMessage);
+                        } else {
+                            $('#errorArea').hide();
+                        }
+
+                        // 处理损坏状态
+                        if (task.status === 'VIDEO_DAMAGED_AWAITING_USER_CHOICE') {
+                            $('#damagePrompt').show();
+                            clearInterval(interval);
+
+                            $('#continueBtn').click(() => {
+                                $.post(`/api/task/continue/${taskId}`, () => {
+                                    $('#damagePrompt').hide();
+                                    $('#currentStatus').text("任务已重新启动处理...");
+                                    pollTaskStatus(taskId);
+                                }).fail(xhr => alert("继续处理失败: " + xhr.responseJSON.message));
+                            });
+
+                            $('#cancelBtn').click(() => {
+                                $.post(`/api/task/cancel/${taskId}`, () => {
+                                    $('#damagePrompt').hide();
+                                    $('#currentStatus').text("任务已取消");
+                                    clearInterval(interval);
+                                }).fail(xhr => alert("取消任务失败: " + xhr.responseJSON.message));
+                            });
+                        }
+
+                        // 完成状态处理
+                        if (task.status === 'COMPLETED') {
+                            $('#downloadLink').attr('href', `/api/task/download/srt/translated/${taskId}`).show();
+                            if (task.burnSubtitles && task.subtitledVideoFilePath) {
+                                $('#videoDownloadLink').attr('href', `/api/task/download/video/subtitled/${taskId}`).show();
+                            }
+                            clearInterval(interval);
+                        } else if (['FAILED', 'CANCELLED'].includes(task.status)) {
+                            clearInterval(interval);
+                        }
+                    });
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>
