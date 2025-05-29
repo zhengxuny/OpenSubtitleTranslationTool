@@ -43,6 +43,8 @@ public class Task {
     private String subtitledVideoFilename;
     // subtitledVideoFilePath 定义了添加字幕后的视频文件在系统中的完整存储路径。
     private String subtitledVideoFilePath;
+    private String summary;  // Add summary field
+
 
     // status 定义了当前任务的状态，初始状态为等待上传。该字段在不同任务执行阶段会被更新。
     @Builder.Default // 使用Builder模式创建对象时，status默认值为PENDING_UPLOAD

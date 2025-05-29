@@ -53,28 +53,25 @@
     <insert id="insertTask" parameterType="com.niit.subtitletranslationtool.entity.Task"
             useGeneratedKeys="true" keyProperty="id" keyColumn="id">
         INSERT INTO task (
-            original_video_filename,
-            stored_video_filename,
-            video_file_path,
-            status,
-            created_at,
-            updated_at,
-            burn_subtitles,
-            user_id  <!-- 正确添加Task关联的user_id -->
+        original_video_filename,
+        stored_video_filename,
+        video_file_path,
+        status,
+        created_at,
+        updated_at,
+        burn_subtitles,
+        user_id,  <!-- Fixed: Replaced Chinese comma with English comma -->
+        summary
         ) VALUES (
-            #{originalVideoFilename},
-            #{storedVideoFilename},
-            #{videoFilePath},
-            <!--
-                #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler}
-                将Task对象的status属性（枚举类型）转换为数据库可以存储的字符串类型。
-                typeHandler指定了用于处理枚举类型转换的类型处理器。
-            -->
-            #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
-            #{createdAt},
-            #{updatedAt},
-            #{burnSubtitles},
-            #{userId}  <!-- 正确使用Task实体的userId属性 -->
+        #{originalVideoFilename},
+        #{storedVideoFilename},
+        #{videoFilePath},
+        #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+        #{createdAt},
+        #{updatedAt},
+        #{burnSubtitles},
+        #{userId},  <!-- Added missing comma -->
+        #{summary}
         )
     </insert>
 
@@ -116,7 +113,8 @@
             error_message = #{errorMessage},
             detected_language = #{detectedLanguage},
             language_probability = #{languageProbability},
-            updated_at = #{updatedAt}
+            updated_at = #{updatedAt},
+            summary = #{summary}
         WHERE
             id = #{id}
     </update>

@@ -21,6 +21,8 @@ import java.util.UUID;
 // 定义一个Spring服务，用于处理字幕翻译任务
 @Service
 public class TaskProcessingService {
+    private final SummaryService summaryService;
+
     // 日志记录器，用于记录任务处理过程中的重要信息和错误
     private static final Logger logger = LoggerFactory.getLogger(TaskProcessingService.class);
 
@@ -45,11 +47,14 @@ public class TaskProcessingService {
             TaskMapper taskMapper,
             WhisperService whisperService,
             TranslationService translationService,
-            @Value("${temp.audio-dir}") String tempAudioDir) {
+            SummaryService summaryService,
+            @Value("${temp.audio-dir}") String tempAudioDir)
+    {
         this.ffmpegService = ffmpegService;
         this.taskMapper = taskMapper;
         this.whisperService = whisperService;
         this.translationService = translationService;
+        this.summaryService = summaryService;
 
         // 将配置文件中指定的临时音频目录配置转换为绝对路径
         // 如果配置路径已经是绝对路径，则保持不变；否则将其相对路径视为相对于项目的根目录
@@ -133,6 +138,19 @@ public class TaskProcessingService {
             task.setUpdatedAt(LocalDateTime.now());
             taskMapper.updateTask(task); // 更新数据库中的任务信息记录
             logger.info("任务{}音频转文字成功，SRT路径: {}", task.getId(), transcriptionResult.getSrtFilePath()); // 记录成功日志
+
+            // 生成总结
+            if (task.getStatus() == TaskStatus.TRANSCRIBED) {
+                try {
+                    // Generate summary
+                    String summary = summaryService.summarizeVideo(task.getOriginalSrtFilePath());
+                    task.setSummary(summary);
+                    taskMapper.updateTask(task);
+                    logger.info("总结生成成功"); // 记录成功日志
+                } catch (Exception e) {
+                    System.err.println("Summarization failed: " + e.getMessage());
+                }
+            }
 
             // 第四步：开始翻译已生成的文字字幕为指定的目标语言
             task.setStatus(TaskStatus.TRANSLATING); // 更新状态为“正在翻译”
