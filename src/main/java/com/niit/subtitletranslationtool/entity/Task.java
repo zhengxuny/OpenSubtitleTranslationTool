@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 
+import java.beans.Transient;
 import java.time.LocalDateTime;
 
 @Data
@@ -44,6 +45,8 @@ public class Task {
     // subtitledVideoFilePath 定义了添加字幕后的视频文件在系统中的完整存储路径。
     private String subtitledVideoFilePath;
     private String summary;  // Add summary field
+     // 需要lombok注解或JPA注解，根据实际ORM调整
+    private String translatedSrtContent;
 
 
     // status 定义了当前任务的状态，初始状态为等待上传。该字段在不同任务执行阶段会被更新。

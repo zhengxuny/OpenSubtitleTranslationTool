@@ -15,4 +15,9 @@ public class TaskService {
     public List<Task> getTasksByUserId(Long userId) {
         return taskMapper.findByUserId(userId);
     }
+
+    // 新增：按ID查询任务
+    public Task getTaskById(Long taskId) {
+        return taskMapper.findById(taskId);
+    }
 }

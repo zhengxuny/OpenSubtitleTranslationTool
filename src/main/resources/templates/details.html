@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${task.originalVideoFilename} + ' 详情'">视频详情</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .details-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .video-section {
+            margin-bottom: 2rem;
+        }
+        video {
+            width: 100%;
+            max-height: 600px;
+            background: #000;
+            border-radius: 8px;
+        }
+        .info-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        .subtitle-section {
+            white-space: pre-wrap;
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .download-buttons {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+        }
+        .download-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            color: white;
+            background: var(--success-color);
+            transition: all 0.2s ease;
+        }
+        .download-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="details-container">
+        <h1 th:text="${task.originalVideoFilename}">示例视频.mp4</h1>
+
+        <!-- 视频播放区域 -->
+        <div class="video-section">
+            <video controls>
+                <!-- 修正后的路径：移除 'outputs/' 前缀 -->
+                <source th:src="@{'/static/' + ${#strings.replace(#strings.replace(task.subtitledVideoFilePath, '\', '/'), 'outputs/', '')}}"
+                type="video/mp4">
+        您的浏览器不支持HTML5视频播放
+    </video>
+</div>
+        <!-- 视频总结 -->
+        <div class="info-section">
+            <h3>视频总结</h3>
+            <p th:text="${task.summary ?: '无总结信息'}">这是一段关于自然景观的视频，展示了山川河流的美丽景色。</p>
+        </div>
+
+        <!-- 翻译后字幕 -->
+        <div class="subtitle-section">
+            <h3>翻译后字幕</h3>
+            <pre th:text="${#strings.isEmpty(task.translatedSrtContent) ? '无字幕文件' : task.translatedSrtContent}">
+00:00:00,000 --> 00:00:05,000
+这是第一条字幕内容
+
+00:00:05,000 --> 00:00:10,000
+这是第二条字幕内容
+            </pre>
+        </div>
+
+        <!-- 下载按钮 -->
+        <div class="download-buttons">
+            <a th:href="'/download-video/' + ${task.id}" class="download-btn">下载视频</a>
+            <a th:href="'/download-srt/' + ${task.id}" class="download-btn">下载字幕</a>
+        </div>
+    </div>
+</body>
+</html>

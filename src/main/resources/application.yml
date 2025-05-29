@@ -1,4 +1,4 @@
-# application.yml
+# application.yml（修正缩进后的完整正确配置）
 server:
   port: 8080
 
@@ -23,6 +23,15 @@ spring:
     multipart:
       max-file-size: 500MB
       max-request-size: 500MB
+  # 关键修正：mvc 和 web 是 spring 的直接子节点（原错误嵌套在 temp 节点下）
+  mvc:
+    static-path-pattern: /static/**  # 静态资源访问前缀：所有/static/开头的请求指向静态资源目录
+  web:
+    resources:
+      static-locations:
+        - classpath:/static/          # 默认类路径静态资源（保留）
+        - classpath:/public/          # 默认类路径静态资源（保留）
+        - file:${user.dir}/outputs/   # 新增：将项目根目录下的outputs目录映射为静态资源
 
 mybatis:
   mapper-locations: classpath:mybatis/mapper/*.xml
@@ -34,9 +43,7 @@ file:
   subtitled-video-dir: "outputs/video_subtitled/"  # 新增压制视频存储目录
 
 temp:
-  audio-dir: temp/audio/
-
-
+  audio-dir: temp/audio/  # 注意：temp 节点下仅保留 audio-dir 配置（原错误嵌套了 mvc/web）
 
 whisper:
   executable-path: "D:/code/Subtitle_translation_tool/Pyhton/faster-whisper-xxl.exe"
@@ -53,4 +60,3 @@ doubao:
   model: "doubao-1-5-pro-32k-250115"
   max-context-length: 32000  # 模型最大上下文长度
   timeout: 60000  # API调用超时时间（毫秒）
-

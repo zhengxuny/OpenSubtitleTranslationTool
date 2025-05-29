@@ -5,11 +5,20 @@ import com.niit.subtitletranslationtool.entity.User;
 import com.niit.subtitletranslationtool.service.TaskService;
 import com.niit.subtitletranslationtool.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -26,6 +35,12 @@ public class ViewController {
     public ViewController(UserService userService, TaskService taskService) {
         this.userService = userService;
         this.taskService = taskService;
+    }
+
+    @GetMapping("/test-path")
+    @ResponseBody
+    public String testPath() {
+        return "项目根目录：" + System.getProperty("user.dir");
     }
 
     /**
@@ -85,6 +100,53 @@ public class ViewController {
         model.addAttribute("tasks", tasks);
 
         return "index";
+    }
+
+    // 新增：视频详情页路由
+    @GetMapping("/video-details/{taskId}")
+    public String showVideoDetailsPage(@PathVariable Long taskId, Model model) {
+        Task task = taskService.getTaskById(taskId);
+        // 读取字幕文件内容（需要处理异常）
+        try {
+            Path srtPath = Paths.get(task.getTranslatedSrtFilePath());
+            // 检查文件是否存在
+            if (Files.exists(srtPath)) {
+                String srtContent = new String(Files.readAllBytes(srtPath));
+            task.setTranslatedSrtContent(srtContent);
+            } else {
+                task.setTranslatedSrtContent("字幕文件不存在");
+        }
+        } catch (IOException e) {
+            task.setTranslatedSrtContent("字幕文件读取失败：" + e.getMessage());
+    }
+        model.addAttribute("task", task);
+        return "details";
+    }
+
+    // 新增：视频下载接口
+    @GetMapping("/download-video/{taskId}")
+    public ResponseEntity<?> downloadVideo(@PathVariable Long taskId) throws IOException {
+        Task task = taskService.getTaskById(taskId);
+        Path videoPath = Paths.get(task.getSubtitledVideoFilePath());
+        UrlResource resource = new UrlResource(videoPath.toUri());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + task.getSubtitledVideoFilename() + "\"")
+                .body(resource);
+    }
+
+    // 新增：字幕下载接口
+    @GetMapping("/download-srt/{taskId}")
+    public ResponseEntity<?> downloadSrt(@PathVariable Long taskId) throws IOException {
+        Task task = taskService.getTaskById(taskId);
+        Path srtPath = Paths.get(task.getTranslatedSrtFilePath());
+        UrlResource resource = new UrlResource(srtPath.toUri());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + task.getTranslatedSrtFilename() + "\"")
+                .body(resource);
     }
 
 }
