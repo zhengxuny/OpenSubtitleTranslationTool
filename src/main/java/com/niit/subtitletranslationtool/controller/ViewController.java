@@ -149,4 +149,12 @@ public class ViewController {
                 .body(resource);
     }
 
+    //映射translation
+    @GetMapping("/translation")
+    public String showTranslationPage() {
+        return "translation"; // 返回 uplode.html 模板
+    }
+
+
+
 }
