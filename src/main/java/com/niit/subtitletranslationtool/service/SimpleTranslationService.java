@@ -128,6 +128,7 @@ public class SimpleTranslationService {
                 // 打印推理过程到控制台
                 logger.info("翻译推理过程:\n{}", reasoning);
 
+
                 return translation;
             }
 
