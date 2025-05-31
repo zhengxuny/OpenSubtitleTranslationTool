@@ -15,9 +15,9 @@ spring:
     prefix: classpath:/templates/
     suffix: .html
   datasource:
-    url: jdbc:mysql://localhost:3306/SubtitleTranslationTool?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=UTC
-    username: root
-    password: root
+    url: jdbc:mysql://mysql5.sqlpub.com:3310/xunyvsqlpub?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=UTC
+    username: zhengxunyv
+    password: ixPEVSO42ETBPNQp
     driver-class-name: com.mysql.cj.jdbc.Driver
   servlet:
     multipart:
@@ -55,8 +55,11 @@ whisper:
 
 # Doubao API配置
 doubao:
-  api-base: "https://ark.cn-beijing.volces.com/api/v3"
-  api-key: "34cc6e77-8723-4668-8a2a-1b41d1ac1329"  # 建议实际部署时改为环境变量注入
-  model: "doubao-1-5-pro-32k-250115"
+#  api-base: "https://ark.cn-beijing.volces.com/api/v3"
+#  api-key: "34cc6e77-8723-4668-8a2a-1b41d1ac1329"  # 建议实际部署时改为环境变量注入
+#  model: "doubao-1-5-pro-32k-250115"
+  api-base: "https://open.bigmodel.cn/api/paas/v4"
+  api-key: "0f8cfeb2602446609cba510ff9d2c7a4.e27nSi66WQnteiXE"  # 建议实际部署时改为环境变量注入
+  model: "GLM-4-AirX"
   max-context-length: 32000  # 模型最大上下文长度
   timeout: 60000  # API调用超时时间（毫秒）
