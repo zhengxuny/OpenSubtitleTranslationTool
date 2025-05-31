@@ -43,7 +43,7 @@ public class TranslationService {
 
     // 并发翻译配置
     private final ExecutorService translationExecutor = Executors.newFixedThreadPool(5);  // 创建一个固定大小的线程池，用于并发翻译
-    private static final int CHUNK_SIZE = 15;  // 每段15条字幕，将字幕分割成小块进行翻译
+    private static final int CHUNK_SIZE = 25;  // 每段15条字幕，将字幕分割成小块进行翻译
     private static final int MAX_RETRIES = 1;  // 最大重试次数，如果翻译失败，会进行重试
 
     @Autowired
