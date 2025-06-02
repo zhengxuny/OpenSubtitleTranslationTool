@@ -1,0 +1,67 @@
+:root {
+    --navbar-bg: #2c3e50;
+    --navbar-hover: #3498db;
+    --navbar-text: #ecf0f1;
+}
+
+.navbar {
+    background-color: var(--navbar-bg);
+    padding: 0.8rem 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    position: fixed;  /* 修改为 fixed 定位 */
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    width: 100%;
+    height: 56px;  /* 明确指定高度 (0.8rem padding × 2 + 内容高度) */
+}
+
+.navbar-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar-logo {
+    color: var(--navbar-text);
+    font-size: 1.4rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.navbar-links {
+    display: flex;
+    list-style: none;
+    gap: 1.8rem;
+}
+
+.navbar-links a {
+    color: var(--navbar-text);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.8rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.navbar-links a:hover {
+    background-color: var(--navbar-hover);
+}
+
+.navbar-user {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: var(--navbar-text);
+}
+
+.navbar-user a {
+    padding: 0.3rem 0.8rem;
+    background: rgba(255,255,255,0.1);
+}

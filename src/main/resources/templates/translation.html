@@ -4,19 +4,24 @@
     <title>高级 AI 翻译器</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 引入导航栏CSS -->
+    <link rel="stylesheet" th:href="@{/static/css/navbar.css}">
+    <!-- 引入Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* 基础样式与原版本一致，仅移除推理相关样式 */
         body {
             font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
             background-color: #f4f7f9;
             color: #333;
             line-height: 1.6;
             margin: 0;
-            padding: 20px;
+            padding: 2rem 1rem;
+            padding-top: 70px;
+            min-height: 100vh;
+            box-sizing: border-box;
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            min-height: 100vh;
         }
 
         .container {
@@ -66,7 +71,6 @@
             font-size: 17px;
             font-weight: 500;
             border-radius: 6px;
-            cursor: pointer;
             transition: background-color 0.2s ease, transform 0.1s ease;
             font-family: inherit;
         }
@@ -95,7 +99,6 @@
             overflow-wrap: break-word;
             color: #212529;
         }
-
         .controls-container {
             display: flex;
             align-items: center;
@@ -119,6 +122,8 @@
     </style>
 </head>
 <body>
+<!-- 使用标准 Thymeleaf 片段语法 -->
+<div th:replace="~{fragments/navbar :: navbar}"></div>
 <div class="container">
     <h1>高级 AI 翻译器</h1>
     <textarea id="inputText" placeholder="在此输入要翻译的文本..."></textarea>

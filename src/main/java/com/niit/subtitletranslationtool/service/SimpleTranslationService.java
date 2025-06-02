@@ -128,8 +128,8 @@ public class SimpleTranslationService {
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.put("model", model);
             requestBody.set("messages", messagesArray);
-            requestBody.put("stream", false); // 关键修改：关闭流式
-            requestBody.put("temperature", 1.3); // 这里设置温度为1.5
+            requestBody.put("stream", false); // 关闭流式
+            requestBody.put("temperature", 1.3); // 这里设置温度为1.3
 
             // 发送同步请求获取完整响应
             JsonNode response = webClient.post()

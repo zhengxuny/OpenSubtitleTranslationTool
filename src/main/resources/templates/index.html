@@ -4,6 +4,10 @@
     <title>字幕翻译工具</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 引入导航栏CSS -->
+    <link rel="stylesheet" th:href="@{/static/css/navbar.css}">
+    <!-- 引入Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
             --primary-color: #2196F3;
@@ -25,6 +29,8 @@
         body {
             background-color: var(--light-gray);
             padding: 2rem 1rem;
+            padding-top: 70px;  /* 确保这个值与导航栏高度匹配 */
+            margin: 0;  /* 添加 margin:0 消除默认边距 */
         }
 
         .container {
@@ -112,45 +118,49 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>欢迎，<span class="username" th:text="${username}"></span>！</h1>
+    <!-- 使用标准 Thymeleaf 片段语法 -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-        <div class="upload-section">
-            <h2 style="color: var(--dark-gray); font-weight: 500; font-size: 1.25rem;">您上传的视频</h2>
-            <a href="/upload" class="upload-button">上传新视频</a>
-        </div>
+    <!-- 页面内容 -->
+<div class="container">
+    <h1>欢迎，<span class="username" th:text="${username}"></span>！</h1>
 
-        <div th:if="${tasks.empty}" class="no-tasks">
-            <p>未找到已上传的视频。</p>
-            <p>点击<a href="/upload">此处</a>开始上传视频。</p>
-        </div>
-
-        <table class="task-table" th:if="${!tasks.empty}">
-            <thead>
-                <tr>
-                    <th>原文件名</th>
-                    <th>状态</th>
-                    <th>上传时间</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="task : ${tasks}">
-                    <td>
-                        <a th:href="'/video-details/' + ${task.id}"
-                           th:text="${task.originalVideoFilename}"
-                           style="color: var(--primary-color); text-decoration: none; font-weight: 500;">
-                            示例视频.mp4
-                        </a>
-                    </td>
-                    <td th:text="${task.status.name()}" style="color: ${task.status == 'COMPLETED' ? 'var(--success-color)' : (task.status == 'FAILED' ? 'var(--danger-color)' : 'var(--dark-gray)')}">
-                        处理中
-                    </td>
-                    <td th:text="${#temporals.format(task.createdAt, 'yyyy-MM-dd HH:mm')}">
-                        2024-03-15 14:30
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="upload-section">
+        <h2 style="color: var(--dark-gray); font-weight: 500; font-size: 1.25rem;">您上传的视频</h2>
+        <a href="/upload" class="upload-button">上传新视频</a>
     </div>
+
+    <div th:if="${tasks.empty}" class="no-tasks">
+        <p>未找到已上传的视频。</p>
+        <p>点击<a href="/upload">此处</a>开始上传视频。</p>
+    </div>
+
+    <table class="task-table" th:if="${!tasks.empty}">
+        <thead>
+        <tr>
+            <th>原文件名</th>
+            <th>状态</th>
+            <th>上传时间</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="task : ${tasks}">
+            <td>
+                <a th:href="'/video-details/' + ${task.id}"
+                   th:text="${task.originalVideoFilename}"
+                   style="color: var(--primary-color); text-decoration: none; font-weight: 500;">
+                    示例视频.mp4
+                </a>
+            </td>
+            <td th:text="${task.status.name()}" style="color: ${task.status == 'COMPLETED' ? 'var(--success-color)' : (task.status == 'FAILED' ? 'var(--danger-color)' : 'var(--dark-gray)')}">
+                处理中
+            </td>
+            <td th:text="${#temporals.format(task.createdAt, 'yyyy-MM-dd HH:mm')}">
+                2024-03-15 14:30
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
 </body>
 </html>

@@ -57,7 +57,7 @@ whisper:
 doubao:
   api-base: "https://ark.cn-beijing.volces.com/api/v3"
   api-key: "34cc6e77-8723-4668-8a2a-1b41d1ac1329"  # 建议实际部署时改为环境变量注入
-  model: "doubao-1-5-pro-32k-250115"
+  model: "deepseek-v3-250324"
 
 #  api-base: "https://ark.cn-beijing.volces.com/api/v3"
 #  api-key: "34cc6e77-8723-4668-8a2a-1b41d1ac1329"  # 建议实际部署时改为环境变量注入

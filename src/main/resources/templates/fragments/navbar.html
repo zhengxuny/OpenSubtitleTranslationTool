@@ -1,0 +1,17 @@
+<!-- 导航栏片段 -->
+<nav class="navbar" th:fragment="navbar">
+    <div class="navbar-container">
+        <a href="/index" class="navbar-logo">字幕翻译工具</a>
+        <ul class="navbar-links">
+            <li><a href="/index"><i class="fas fa-home"></i> 首页</a></li>
+            <li><a href="/upload"><i class="fas fa-upload"></i> 上传视频</a></li>
+            <li><a href="/translation"><i class="fas fa-language"></i> 在线翻译</a></li>
+            <li><a href="/topup"><i class="fas fa-wallet"></i> 账户充值</a></li>
+            <li class="navbar-user">
+                <span th:text="${username} ? '欢迎, ' + ${username} : '游客'"></span>
+                <a th:href="@{/logout}"><i class="fas fa-sign-out-alt"></i> 退出</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
