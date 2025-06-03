@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication; // 引入 Authentication 类
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -66,21 +67,44 @@ public class ViewController {
     }
 
     /**
-     * 当用户访问根路径"/"或者"/index"路径时，会调用此方法。
-     * 该方法返回一个代表主页的字符串，将会被Spring解析为"uplode.html"模板文件。
-     * 这意味着不论是直接访问网站根路径还是明确指定了/index路径，都将会导向同一主页。
+     * 当用户访问"/upload"路径时，会调用此方法。
+     * 该方法现在会获取当前认证用户的用户名和余额，并将其添加到Model中。
+     * 这确保了即使通过/upload路径访问，导航栏也能显示正确的用户信息。
      *
-     * @return 字符串"index"，表示返回index.html视图
+     * @param model Thymeleaf 模型，用于向视图传递数据
+     * @return 字符串"uplode"，表示返回uplode.html视图
      */
     @GetMapping({"/upload"})
-    public String showIndexPage() {
+    public String showUploadPage(Model model) { // 将 showIndexPage 重命名为 showUploadPage 以避免混淆
+        // 尝试获取当前认证信息
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // 检查用户是否已认证且不是匿名用户
+        if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getName())) {
+            String username = authentication.getName();
+            User user = userService.getUserByUsername(username);
+            model.addAttribute("username", username);
+            model.addAttribute("userBalance", user.getBalance()); // 使用 userBalance
+            model.addAttribute("userId", user.getId());
+        } else {
+            // 如果未认证或匿名用户，可以设置默认值或不添加这些属性
+            // navbar会处理#authentication?.name ?: '访客'和userBalance的null情况
+        }
         return "uplode"; // 返回 uplode.html 模板
     }
 
 
     // 新增充值页面路由
     @GetMapping("/topup")
-    public String showTopUpPage() {
+    public String showTopUpPage(Model model) { // 添加 Model 参数
+        // 尝试获取当前认证信息
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getName())) {
+            String username = authentication.getName();
+            User user = userService.getUserByUsername(username);
+            model.addAttribute("username", username);
+            model.addAttribute("userBalance", user.getBalance()); // 使用 userBalance
+            model.addAttribute("userId", user.getId());
+        }
         return "topup"; // 返回topup.html模板
     }
 
@@ -92,12 +116,15 @@ public class ViewController {
                 .getName();
 
         // Get user and their tasks
-        User user = userService.getUserByUsername(username);
+        User user = userService.getUserByUsername(username); // user对象包含balance
         List<Task> tasks = taskService.getTasksByUserId(user.getId());
 
         // Pass data to template
         model.addAttribute("username", username);
         model.addAttribute("tasks", tasks);
+        // 修正：将用户余额的模型属性名改为 "userBalance"
+        model.addAttribute("userBalance", user.getBalance()); // 将balance传递给前端
+        model.addAttribute("userId", user.getId()); // 如果前端需要userId也可以添加
 
         return "index";
     }
@@ -105,6 +132,16 @@ public class ViewController {
     // 新增：视频详情页路由
     @GetMapping("/video-details/{taskId}")
     public String showVideoDetailsPage(@PathVariable Long taskId, Model model) {
+        // 尝试获取当前认证信息，并将其添加到Model中
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getName())) {
+            String username = authentication.getName();
+            User user = userService.getUserByUsername(username);
+            model.addAttribute("username", username);
+            model.addAttribute("userBalance", user.getBalance()); // 使用 userBalance
+            model.addAttribute("userId", user.getId());
+        }
+
         Task task = taskService.getTaskById(taskId);
         // 读取字幕文件内容（需要处理异常）
         try {
@@ -112,13 +149,13 @@ public class ViewController {
             // 检查文件是否存在
             if (Files.exists(srtPath)) {
                 String srtContent = new String(Files.readAllBytes(srtPath));
-            task.setTranslatedSrtContent(srtContent);
+                task.setTranslatedSrtContent(srtContent);
             } else {
                 task.setTranslatedSrtContent("字幕文件不存在");
-        }
+            }
         } catch (IOException e) {
             task.setTranslatedSrtContent("字幕文件读取失败：" + e.getMessage());
-    }
+        }
         model.addAttribute("task", task);
         return "details";
     }
@@ -149,12 +186,24 @@ public class ViewController {
                 .body(resource);
     }
 
-    //映射translation
-    @GetMapping("/translation")
-    public String showTranslationPage() {
-        return "translation"; // 返回 uplode.html 模板
+    /**
+     * 映射文本翻译页面路由 "/SimpleTranslation"。
+     * 该方法获取当前认证用户的用户名和余额，并将其添加到Model中。
+     *
+     * @param model Thymeleaf 模型，用于向视图传递数据
+     * @return 字符串"SimpleTranslation"，表示返回SimpleTranslation.html视图
+     */
+    @GetMapping("/SimpleTranslation")
+    public String showTranslationPage(Model model) { // 添加 Model 参数
+        // 尝试获取当前认证信息
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getName())) {
+            String username = authentication.getName();
+            User user = userService.getUserByUsername(username);
+            model.addAttribute("username", username);
+            model.addAttribute("userBalance", user.getBalance()); // 使用 userBalance
+            model.addAttribute("userId", user.getId());
+        }
+        return "SimpleTranslation"; // 返回 SimpleTranslation.html 模板
     }
-
-
-
 }

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>高级 AI 翻译器</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/static/css/global.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="container mt-4">
+    <h1 class="mb-4 text-center">高级 AI 翻译器</h1>
+    <div class="card">
+        <div class="card-body">
+            <div class="mb-3">
+                <textarea id="inputText" class="form-control" rows="5" placeholder="在此输入要翻译的文本..."></textarea>
+            </div>
+            <div class="d-flex align-items-center mb-3">
+                <button id="translateButton" onclick="startTranslation()" class="btn btn-primary">
+                    <i class="fas fa-language"></i> 翻译
+                </button>
+                <div class="spinner-border spinner-border-sm ms-2" role="status" id="loadingSpinner" style="display: none;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+
+            <h3 class="mt-4">最终翻译结果:</h3>
+            <div id="translationResultOutput" class="p-3 bg-light border rounded" style="min-height: 100px; white-space: pre-wrap;"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+<script>
+    const inputText = document.getElementById('inputText');
+    const translateButton = document.getElementById('translateButton');
+    const translationResultOutput = document.getElementById('translationResultOutput');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+
+    function startTranslation() {
+        const textToTranslate = inputText.value.trim();
+        if (!textToTranslate) {
+            alert("请输入要翻译的文本。");
+            return;
+        }
+
+        translationResultOutput.textContent = '';
+        translationResultOutput.classList.remove('alert', 'alert-danger', 'alert-success');
+        translateButton.disabled = true;
+        loadingSpinner.style.display = 'inline-block';
+
+        // 核心修改在这里：添加 ?text=
+        fetch(`/api/simpletranslate?text=${encodeURIComponent(textToTranslate)}`)
+            .then(response => {
+                if (!response.ok) throw new Error(`翻译请求失败 (状态 ${response.status})`);
+                return response.text();
+            })
+            .then(translation => {
+                translationResultOutput.textContent = translation;
+            })
+            .catch(error => {
+                translationResultOutput.textContent = `翻译失败: ${error.message}`;
+                translationResultOutput.classList.add('alert', 'alert-danger');
+            })
+            .finally(() => {
+                translateButton.disabled = false;
+                loadingSpinner.style.display = 'none';
+            });
+    }
+</script>
+</body>
+</html>

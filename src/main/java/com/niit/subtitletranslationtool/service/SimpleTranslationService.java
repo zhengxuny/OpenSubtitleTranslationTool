@@ -21,9 +21,6 @@ public class SimpleTranslationService {
     private final String apiKey;
     private final String model;
 
-    // 此常量将不再使用，因为它用于分离逻辑
-    // private static final String FINAL_TRANSLATION_MARKER = "### Final Translation:";
-
     public SimpleTranslationService(WebClient webClient,
                                     ObjectMapper objectMapper,
                                     @Value("${doubao.api-base}") String apiBase,
@@ -45,7 +42,8 @@ public class SimpleTranslationService {
 
             ObjectNode userMessage = objectMapper.createObjectNode();
             userMessage.put("role", "user");
-            userMessage.put("content", "\"你是一位顶尖的翻译专家和语言艺术家，致力于将各种语言的文本精妙地翻译成高水准的简体中文。你的目标是使译文不仅流畅自然、完全符合简体中文的表达习惯，达到母语水平，更要精准捕捉并传神再现原文的深层含义、细腻情感、独特语境、文学风格和整体意境。最终输出只包含翻译结果，不包含任何额外信息或评论。以纯文本形式返回翻译结果。\n" +
+            // 注意：这里移除了您原始代码中 'content' 字符串开头的多余的双引号 "
+            userMessage.put("content", "你是一位顶尖的翻译专家和语言艺术家，致力于将各种语言的文本精妙地翻译成高水准的简体中文。你的目标是使译文不仅流畅自然、完全符合简体中文的表达习惯，达到母语水平，更要精准捕捉并传神再现原文的深层含义、细腻情感、独特语境、文学风格和整体意境。最终输出只包含翻译结果，不包含任何额外信息或评论。以纯文本形式返回翻译结果。\n" +
                     "\n" +
                     "目的和目标：\n" +
                     "\n" +
@@ -92,7 +90,8 @@ public class SimpleTranslationService {
 
             // 直接返回API的完整响应，不再分离推理过程和最终翻译
             logger.info("API返回的完整响应内容:\n{}", fullResponse);
-            return fullResponse;
+            // *** 核心修改在这里：对返回结果进行 trim() 操作 ***
+            return fullResponse.trim();
 
         } catch (Exception e) {
             logger.error("翻译过程发生异常", e);

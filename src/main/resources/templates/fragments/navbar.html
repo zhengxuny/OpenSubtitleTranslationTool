@@ -1,17 +1,40 @@
-<!-- 导航栏片段 -->
-<nav class="navbar" th:fragment="navbar">
-    <div class="navbar-container">
-        <a href="/index" class="navbar-logo">字幕翻译工具</a>
-        <ul class="navbar-links">
-            <li><a href="/index"><i class="fas fa-home"></i> 首页</a></li>
-            <li><a href="/upload"><i class="fas fa-upload"></i> 上传视频</a></li>
-            <li><a href="/translation"><i class="fas fa-language"></i> 在线翻译</a></li>
-            <li><a href="/topup"><i class="fas fa-wallet"></i> 账户充值</a></li>
-            <li class="navbar-user">
-                <span th:text="${username} ? '欢迎, ' + ${username} : '游客'"></span>
-                <a th:href="@{/logout}"><i class="fas fa-sign-out-alt"></i> 退出</a>
-            </li>
-        </ul>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" th:fragment="navbar">
+    <div class="container-fluid">
+        <a class="navbar-brand" th:href="@{/index}">字幕翻译工具</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/index}"><i class="fas fa-home"></i> 主页</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/upload}"><i class="fas fa-upload"></i> 上传视频</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/SimpleTranslation}"><i class="fas fa-language"></i> 文本翻译</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/topup}"><i class="fas fa-credit-card"></i> 账户充值</a>
+                </li>
+            </ul>
+            <div class="navbar-text d-flex align-items-center">
+                <span class="me-3">你好, <span th:text="${#authentication?.name ?: '访客'}">用户</span>!</span>
+                <!-- Assume balance is available in session or model attribute 'userBalance' -->
+                <span class="me-3">余额: ¥<span th:text="${userBalance != null ? #numbers.formatDecimal(userBalance, 1, 2) : '0.00'}">0.00</span></span>
+                <a th:if="${#authentication?.name != null}" th:href="@{/logout}" class="btn btn-outline-light btn-sm">
+                    <i class="fas fa-sign-out-alt"></i> 登出
+                </a>
+                <a th:if="${#authentication?.name == null}" th:href="@{/login}" class="btn btn-outline-light btn-sm">
+                    <i class="fas fa-sign-in-alt"></i> 登录
+                </a>
+            </div>
+        </div>
     </div>
 </nav>
-
+</body>
+</html>
