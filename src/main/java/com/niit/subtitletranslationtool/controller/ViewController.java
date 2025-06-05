@@ -4,6 +4,7 @@ import com.niit.subtitletranslationtool.entity.Task;
 import com.niit.subtitletranslationtool.entity.User;
 import com.niit.subtitletranslationtool.service.TaskService;
 import com.niit.subtitletranslationtool.service.UserService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -218,4 +219,11 @@ public class ViewController {
 //    public String showAdminIndexPage() {
 //        return "admin/adminindex"; // 返回 adminindex.html 模板
 //    }
+
+    //新增/logout定义到登录页面
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate(); // 清除session
+        return "redirect:/login"; // 重定向到登录页面
+    }
 }

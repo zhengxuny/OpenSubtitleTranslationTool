@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"> <!-- 添加Spring Security方言命名空间 -->
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" th:fragment="admin-navbar">
     <div class="container-fluid">
@@ -20,7 +21,8 @@
                 </li>
             </ul>
             <div class="navbar-text d-flex align-items-center">
-                <span class="me-3">管理员: <span th:text="${#authentication?.name ?: '管理员'}">admin</span></span>
+                <!-- 使用sec:authentication表达式更明确获取用户名 -->
+                <span class="me-3">管理员: <span sec:authentication="name" th:text="${#authentication?.name ?: '管理员'}">admin</span></span>
                 <a th:href="@{/logout}" class="btn btn-outline-light btn-sm">
                     <i class="fas fa-sign-out-alt"></i> 登出
                 </a>

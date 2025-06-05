@@ -16,8 +16,9 @@
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
 }
 
-/* 全局间距优化 */
+/* 全局容器样式（已优化） */
 .admin-container {
     max-width: 1320px; /* Bootstrap 大容器宽度 */
     padding: 2rem 1rem;
+    margin-top: 80px; /* 关键修改：增加顶部边距，避开固定导航栏（导航栏高度约56px，预留额外空间） */
 }

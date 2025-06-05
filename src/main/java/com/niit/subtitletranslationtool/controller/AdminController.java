@@ -6,6 +6,7 @@ import com.niit.subtitletranslationtool.enums.TaskStatus;
 import com.niit.subtitletranslationtool.mapper.TaskMapper;
 import com.niit.subtitletranslationtool.mapper.UserMapper;
 import com.niit.subtitletranslationtool.service.UserService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -117,9 +118,14 @@ public class AdminController {
 
     // 新增：后台首页数据处理方法
     @GetMapping("/index")
-    public String adminIndex(Model model, Authentication authentication) { // 新增Authentication参数
-        // 打印当前用户权限（调试用）
-        System.out.println("当前用户权限：" + authentication.getAuthorities());
+    public String adminIndex(Model model, Authentication authentication) {
+        // 调试：检查认证对象是否存在
+        if (authentication == null) {
+            System.err.println("警告：管理员未认证，SecurityContext中无Authentication对象");
+        } else {
+            System.out.println("当前管理员用户名（from Authentication）: " + authentication.getName());
+            System.out.println("当前管理员权限: " + authentication.getAuthorities());
+        }
         // 总用户数
         int totalUsers = userMapper.countAllUsers();
         // 总任务数
@@ -143,4 +149,6 @@ public class AdminController {
 
         return "admin/adminindex";
     }
+
+
 }

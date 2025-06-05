@@ -139,7 +139,6 @@ public class SecurityConfig {
                 // 禁用CSRF
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // 会话管理（根据需求调整）
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.ALWAYS) // 总是创建会话
                         .maximumSessions(1) // 限制单设备登录（可选）
