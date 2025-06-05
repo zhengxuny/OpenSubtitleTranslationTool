@@ -39,4 +39,7 @@ public interface TaskMapper {
      * @return: 返回List<Task>对象，包含了查询到的任务信息；如果没有找到相关的任务，则返回空列表
      */
     List<Task> findByUserId(Long userId);
+
+    //查找全部任务
+    List<Task> findAllTasks();
 }

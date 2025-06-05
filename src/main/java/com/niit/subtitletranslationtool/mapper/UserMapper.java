@@ -4,6 +4,8 @@ import com.niit.subtitletranslationtool.entity.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 // 定义UserMapper接口，用于与数据库中用户表进行交互
 @Mapper
 public interface UserMapper {
@@ -22,4 +24,10 @@ public interface UserMapper {
 
     // 更新用户信息的方法，传入一个用户对象，根据其ID更新用户表中的相应记录
     void updateUser(User user);
+
+    // 查询所有用户
+    List<User> findAllUsers();
+
+    // 按ID删除用户
+    void deleteUser(@Param("id") Long id);
 }

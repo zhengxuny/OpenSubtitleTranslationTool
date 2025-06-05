@@ -126,4 +126,10 @@
         ORDER BY created_at DESC
     </select>
 
+<!--    查找全部任务，findAllTasks-->
+    <select id="findAllTasks" resultMap="TaskResultMap">
+        SELECT * FROM task
+        ORDER BY created_at DESC
+    </select>
+
 </mapper>

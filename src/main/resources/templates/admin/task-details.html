@@ -1,0 +1,51 @@
+<!-- src/main/resources/templates/admin/task-details.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>任务详情</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{fragments/admin-navbar :: admin-navbar}"></div>
+
+<div class="container mt-4">
+    <h1 class="mb-4" th:text="'任务详情 - ' + ${task.originalVideoFilename}"></h1>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">基础信息</h5>
+            <p class="card-text">任务ID：<span th:text="${task.id}"></span></p>
+            <p class="card-text">用户ID：<span th:text="${task.userId}"></span></p>
+            <p class="card-text">上传时间：<span th:text="${#temporals.format(task.createdAt, 'yyyy-MM-dd HH:mm')}"></span></p>
+            <p class="card-text">最后更新：<span th:text="${#temporals.format(task.updatedAt, 'yyyy-MM-dd HH:mm')}"></span></p>
+            <p class="card-text">任务状态：<span th:text="${task.status.displayName}"
+                th:classappend="${task.status.name() == 'COMPLETED' ? 'text-success' :
+                               (task.status.name() == 'FAILED' ? 'text-danger' : 'text-muted')}">
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">文件信息</h5>
+            <p class="card-text">原视频文件名：<span th:text="${task.originalVideoFilename}"></span></p>
+            <p class="card-text">存储路径：<span th:text="${task.videoFilePath}"></span></p>
+            <p class="card-text">翻译后字幕文件：<span th:text="${task.translatedSrtFilename ?: '无'}"></span></p>
+            <p class="card-text">压制后视频文件：<span th:text="${task.subtitledVideoFilename ?: '无'}"></span></p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">错误信息</h5>
+            <p class="card-text" th:text="${task.errorMessage ?: '无错误信息'}"></p>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

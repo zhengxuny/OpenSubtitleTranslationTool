@@ -93,4 +93,20 @@
             id = #{id}
     </update>
 
+
+<!--    提供查询所有用户的方法-->
+<!--    List<User> findAllUsers();-->
+   <select id="findAllUsers" resultMap="UserResultMap">
+        SELECT id, username, password, email, balance, created_at, updated_at
+        FROM user
+    </select>
+
+
+<!--    // 按ID删除用户-->
+<!--    void deleteUser(@Param("id") Long id);-->
+    <delete id="deleteUser" parameterType="long">
+        DELETE FROM user WHERE id = #{id}
+    </delete>
+
+
 </mapper>
