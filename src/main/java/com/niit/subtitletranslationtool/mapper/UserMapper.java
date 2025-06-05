@@ -30,4 +30,10 @@ public interface UserMapper {
 
     // 按ID删除用户
     void deleteUser(@Param("id") Long id);
+
+    // 统计总用户数
+    int countAllUsers();
+
+    // 最近注册用户（按创建时间倒序，取前n条）
+    List<User> findRecentUsers(int limit);
 }

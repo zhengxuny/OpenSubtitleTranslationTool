@@ -213,9 +213,9 @@ public class ViewController {
         return "admin/adminlogin"; // 返回 adminlogin.html 模板
     }
 
-    //路由管理员主页/admin/index.html到/admin/index
-    @GetMapping("/admin/index")
-    public String showAdminIndexPage() {
-        return "admin/adminindex"; // 返回 adminindex.html 模板
-    }
+//    //路由管理员主页/admin/index.html到/admin/index
+//    @GetMapping("/admin/index")
+//    public String showAdminIndexPage() {
+//        return "admin/adminindex"; // 返回 adminindex.html 模板
+//    }
 }

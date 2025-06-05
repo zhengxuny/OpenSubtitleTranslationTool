@@ -1,7 +1,10 @@
 package com.niit.subtitletranslationtool.mapper;
 
 import com.niit.subtitletranslationtool.entity.Task;
+import com.niit.subtitletranslationtool.enums.TaskStatus;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 
 /**
@@ -42,4 +45,13 @@ public interface TaskMapper {
 
     //查找全部任务
     List<Task> findAllTasks();
+
+    // 统计总任务数
+    int countAllTasks();
+
+    // 按状态统计任务数
+    int countTasksByStatus(@Param("status") TaskStatus status);
+
+    // 最近任务（按创建时间倒序，取前n条）
+    List<Task> findRecentTasks(int limit);
 }

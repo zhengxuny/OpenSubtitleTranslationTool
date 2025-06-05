@@ -108,5 +108,19 @@
         DELETE FROM user WHERE id = #{id}
     </delete>
 
+<!--    // 统计总用户数-->
+<!--    int countAllUsers();-->
+    <select id="countAllUsers" resultType="int">
+        SELECT COUNT(*) FROM user
+    </select>
+
+<!--    // 最近注册用户（按创建时间倒序，取前n条）-->
+<!--    List<User> findRecentUsers(int limit);-->
+    <select id="findRecentUsers" parameterType="int" resultMap="UserResultMap">
+        SELECT id, username, password, email, balance, created_at, updated_at
+        FROM user
+        ORDER BY created_at DESC
+        LIMIT #{limit}
+    </select>
 
 </mapper>

@@ -132,4 +132,25 @@
         ORDER BY created_at DESC
     </select>
 
+<!--    // 统计总任务数-->
+<!--    int countAllTasks();-->
+    <select id="countAllTasks" resultType="int">
+        SELECT COUNT(*) FROM task
+    </select>
+
+<!--    // 按状态统计任务数-->
+<!--    int countTasksByStatus(@Param("status") TaskStatus status);-->
+    <select id="countTasksByStatus" resultType="int">
+        SELECT COUNT(*) FROM task
+        WHERE status = #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler}
+    </select>
+
+<!--    // 最近任务（按创建时间倒序，取前n条）-->
+<!--    List<Task> findRecentTasks(int limit);-->
+    <select id="findRecentTasks" resultMap="TaskResultMap">
+        SELECT * FROM task
+        ORDER BY created_at DESC
+        LIMIT #{limit}
+    </select>
+
 </mapper>

@@ -2,6 +2,7 @@ package com.niit.subtitletranslationtool.controller;
 
 import com.niit.subtitletranslationtool.entity.Task;
 import com.niit.subtitletranslationtool.entity.User;
+import com.niit.subtitletranslationtool.enums.TaskStatus;
 import com.niit.subtitletranslationtool.mapper.TaskMapper;
 import com.niit.subtitletranslationtool.mapper.UserMapper;
 import com.niit.subtitletranslationtool.service.UserService;
@@ -111,5 +112,32 @@ public class AdminController {
         Task task = taskMapper.findById(id);
         model.addAttribute("task", task);
         return "admin/task-details";
+    }
+
+    // 新增：后台首页数据处理方法
+    @GetMapping("/index") // 匹配 /admin 路径
+    public String adminIndex(Model model) {
+        // 总用户数
+        int totalUsers = userMapper.countAllUsers();
+        // 总任务数
+        int totalTasks = taskMapper.countAllTasks();
+        // 完成任务数（假设TaskStatus有COMPLETED状态）
+        int completedTasks = taskMapper.countTasksByStatus(TaskStatus.COMPLETED);
+        // 失败任务数
+        int failedTasks = taskMapper.countTasksByStatus(TaskStatus.FAILED);
+        // 最近5个任务（按创建时间倒序）
+        List<Task> recentTasks = taskMapper.findRecentTasks(5);
+        // 最近5个用户（按注册时间倒序）
+        List<User> recentUsers = userMapper.findRecentUsers(5);
+
+        // 传递数据到模板
+        model.addAttribute("totalUsers", totalUsers);
+        model.addAttribute("totalTasks", totalTasks);
+        model.addAttribute("completedTasks", completedTasks);
+        model.addAttribute("failedTasks", failedTasks);
+        model.addAttribute("recentTasks", recentTasks);
+        model.addAttribute("recentUsers", recentUsers);
+
+        return "admin/adminindex"; // 返回后台首页模板
     }
 }
