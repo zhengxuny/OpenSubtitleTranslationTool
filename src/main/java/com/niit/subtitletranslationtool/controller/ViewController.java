@@ -52,7 +52,7 @@ public class ViewController {
      */
     @GetMapping("/login")
     public String showLoginPage() {
-        return "login"; // 返回 login.html 模板
+        return "user/login"; // 返回 login.html 模板
     }
 
     /**
@@ -63,7 +63,7 @@ public class ViewController {
      */
     @GetMapping("/register")
     public String showRegisterPage() {
-        return "register"; // 返回 register.html 模板
+        return "user/register"; // 返回 register.html 模板
     }
 
     /**
@@ -89,7 +89,7 @@ public class ViewController {
             // 如果未认证或匿名用户，可以设置默认值或不添加这些属性
             // navbar会处理#authentication?.name ?: '访客'和userBalance的null情况
         }
-        return "uplode"; // 返回 uplode.html 模板
+        return "user/uplode"; // 返回 uplode.html 模板
     }
 
 
@@ -105,7 +105,7 @@ public class ViewController {
             model.addAttribute("userBalance", user.getBalance()); // 使用 userBalance
             model.addAttribute("userId", user.getId());
         }
-        return "topup"; // 返回topup.html模板
+        return "user/topup"; // 返回topup.html模板
     }
 
     @GetMapping({"/", "/index"})
@@ -126,7 +126,7 @@ public class ViewController {
         model.addAttribute("userBalance", user.getBalance()); // 将balance传递给前端
         model.addAttribute("userId", user.getId()); // 如果前端需要userId也可以添加
 
-        return "index";
+        return "user/index";
     }
 
     // 新增：视频详情页路由
@@ -157,7 +157,7 @@ public class ViewController {
             task.setTranslatedSrtContent("字幕文件读取失败：" + e.getMessage());
         }
         model.addAttribute("task", task);
-        return "details";
+        return "user/details";
     }
 
     // 新增：视频下载接口
@@ -204,6 +204,18 @@ public class ViewController {
             model.addAttribute("userBalance", user.getBalance()); // 使用 userBalance
             model.addAttribute("userId", user.getId());
         }
-        return "SimpleTranslation"; // 返回 SimpleTranslation.html 模板
+        return "user/SimpleTranslation"; // 返回 SimpleTranslation.html 模板
+    }
+
+    //路由管理员登录页面adminlogin.html到/admin/login
+    @GetMapping("/admin/login")
+    public String showAdminLoginPage() {
+        return "admin/adminlogin"; // 返回 adminlogin.html 模板
+    }
+
+    //路由管理员主页/admin/index.html到/admin/index
+    @GetMapping("/admin/index")
+    public String showAdminIndexPage() {
+        return "admin/adminindex"; // 返回 adminindex.html 模板
     }
 }
