@@ -9,6 +9,7 @@ import com.niit.subtitletranslationtool.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -115,8 +116,10 @@ public class AdminController {
     }
 
     // 新增：后台首页数据处理方法
-    @GetMapping("/index") // 匹配 /admin 路径
-    public String adminIndex(Model model) {
+    @GetMapping("/index")
+    public String adminIndex(Model model, Authentication authentication) { // 新增Authentication参数
+        // 打印当前用户权限（调试用）
+        System.out.println("当前用户权限：" + authentication.getAuthorities());
         // 总用户数
         int totalUsers = userMapper.countAllUsers();
         // 总任务数
@@ -138,6 +141,6 @@ public class AdminController {
         model.addAttribute("recentTasks", recentTasks);
         model.addAttribute("recentUsers", recentUsers);
 
-        return "admin/adminindex"; // 返回后台首页模板
+        return "admin/adminindex";
     }
 }

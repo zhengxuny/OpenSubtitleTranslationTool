@@ -12,7 +12,7 @@
     <!-- 根据用户名查询 -->
     <select id="selectByUsername" resultMap="BaseResultMap">
         SELECT id, username, password
-        FROM Admin
+        FROM admin <!-- 改为实际表名 -->
         WHERE username = #{username}
         LIMIT 1
     </select>

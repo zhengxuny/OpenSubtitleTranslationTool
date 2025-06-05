@@ -6,6 +6,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority; // <-- 新增导入
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,15 +28,22 @@ public class AdminService implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // 添加日志输出
+        System.out.println("尝试查询管理员用户：" + username);
         Admin admin = adminMapper.selectByUsername(username);
         if (admin == null) {
+            System.err.println("管理员用户未找到：" + username); // 错误日志
             throw new UsernameNotFoundException("管理员不存在");
         }
-        // 返回带管理员角色的UserDetails对象
+        // 确认密码字段非空（防止空指针）
+        if (admin.getPassword() == null) {
+            System.err.println("管理员密码为空：" + username);
+            throw new UsernameNotFoundException("管理员密码配置异常");
+        }
         return new User(
             admin.getUsername(),
             admin.getPassword(),
-            Collections.singletonList(() -> "ROLE_ADMIN")  // 赋予ADMIN角色权限
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN"))
         );
     }
 
