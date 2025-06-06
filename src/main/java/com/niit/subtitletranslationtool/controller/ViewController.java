@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication; // 引入 Authentication 类
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,8 +24,8 @@ import java.nio.file.Paths;
 import java.util.List;
 
 /**
- * 该类是一个Spring Web MVC控制器，主要负责处理用户页面请求的逻辑。
- * 它映射了与用户登录、注册以及主页相关的URL路径，并返回相应的HTML模板页面。
+ * Spring Web MVC控制器，负责处理用户界面的页面请求及相关数据传递。
+ * 支持登录、注册、上传、充值、视频详情展示、文件下载等功能页面的路由映射。
  */
 @Controller
 public class ViewController {
@@ -33,12 +33,23 @@ public class ViewController {
     private final UserService userService;
     private final TaskService taskService;
 
+    /**
+     * 构造方法，通过依赖注入初始化用户服务和任务服务。
+     *
+     * @param userService 用户业务逻辑服务
+     * @param taskService 任务业务逻辑服务
+     */
     @Autowired
     public ViewController(UserService userService, TaskService taskService) {
         this.userService = userService;
         this.taskService = taskService;
     }
 
+    /**
+     * 测试路径接口，返回当前项目根目录路径。
+     *
+     * @return 包含项目根目录路径的字符串
+     */
     @GetMapping("/test-path")
     @ResponseBody
     public String testPath() {
@@ -46,108 +57,118 @@ public class ViewController {
     }
 
     /**
-     * 用户访问"/login"路径时调用此方法。
-     * 该方法返回一个表示登录页面的字符串，将会被Spring解析为"login.html"模板文件。
+     * 映射登录页面请求，返回登录视图。
      *
-     * @return 字符串"login"，表示返回login.html视图
+     * @return 登录页面模板路径（user/login.html）
      */
     @GetMapping("/login")
     public String showLoginPage() {
-        return "user/login"; // 返回 login.html 模板
+        return "user/login";
     }
 
     /**
-     * 用户访问"/register"路径时调用此方法。
-     * 该方法返回一个表示注册页面的字符串，将会被Spring解析为"register.html"模板文件。
+     * 映射注册页面请求，返回注册视图。
      *
-     * @return 字符串"register"，表示返回register.html视图
+     * @return 注册页面模板路径（user/register.html）
      */
     @GetMapping("/register")
     public String showRegisterPage() {
-        return "user/register"; // 返回 register.html 模板
+        return "user/register";
     }
 
     /**
-     * 当用户访问"/upload"路径时，会调用此方法。
-     * 该方法现在会获取当前认证用户的用户名和余额，并将其添加到Model中。
-     * 这确保了即使通过/upload路径访问，导航栏也能显示正确的用户信息。
+     * 映射上传页面请求，传递当前用户信息到视图。
+     * 若用户已认证，将用户名、余额、用户ID添加到模型；未认证则不传递用户信息。
      *
-     * @param model Thymeleaf 模型，用于向视图传递数据
-     * @return 字符串"uplode"，表示返回uplode.html视图
+     * @param model Thymeleaf模型对象，用于向视图传递数据
+     * @return 上传页面模板路径（user/uplode.html）
      */
     @GetMapping({"/upload"})
-    public String showUploadPage(Model model) { // 将 showIndexPage 重命名为 showUploadPage 以避免混淆
-        // 尝试获取当前认证信息
+    public String showUploadPage(Model model) {
+        // 获取当前认证信息
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        // 检查用户是否已认证且不是匿名用户
+        // 检查用户是否已认证且非匿名用户
         if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getName())) {
             String username = authentication.getName();
             User user = userService.getUserByUsername(username);
             model.addAttribute("username", username);
-            model.addAttribute("userBalance", user.getBalance()); // 使用 userBalance
+            model.addAttribute("userBalance", user.getBalance());
             model.addAttribute("userId", user.getId());
-        } else {
-            // 如果未认证或匿名用户，可以设置默认值或不添加这些属性
-            // navbar会处理#authentication?.name ?: '访客'和userBalance的null情况
         }
-        return "user/uplode"; // 返回 uplode.html 模板
+        return "user/uplode";
     }
 
-
-    // 新增充值页面路由
+    /**
+     * 映射充值页面请求，传递当前用户信息到视图。
+     * 若用户已认证，将用户名、余额、用户ID添加到模型。
+     *
+     * @param model Thymeleaf模型对象，用于向视图传递数据
+     * @return 充值页面模板路径（user/topup.html）
+     */
     @GetMapping("/topup")
-    public String showTopUpPage(Model model) { // 添加 Model 参数
-        // 尝试获取当前认证信息
+    public String showTopUpPage(Model model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getName())) {
             String username = authentication.getName();
             User user = userService.getUserByUsername(username);
             model.addAttribute("username", username);
-            model.addAttribute("userBalance", user.getBalance()); // 使用 userBalance
+            model.addAttribute("userBalance", user.getBalance());
             model.addAttribute("userId", user.getId());
         }
-        return "user/topup"; // 返回topup.html模板
+        return "user/topup";
     }
 
+    /**
+     * 映射主页请求，传递用户任务列表及账户信息到视图。
+     *
+     * @param model Thymeleaf模型对象，用于向视图传递数据
+     * @return 主页模板路径（user/index.html）
+     */
     @GetMapping({"/", "/index"})
     public String showIndexPage(Model model) {
-        // Get current authenticated username
+        // 获取当前认证用户的用户名
         String username = SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getName();
 
-        // Get user and their tasks
-        User user = userService.getUserByUsername(username); // user对象包含balance
+        // 查询用户信息及关联任务
+        User user = userService.getUserByUsername(username);
         List<Task> tasks = taskService.getTasksByUserId(user.getId());
 
-        // Pass data to template
+        // 向视图传递用户信息和任务数据
         model.addAttribute("username", username);
         model.addAttribute("tasks", tasks);
-        // 修正：将用户余额的模型属性名改为 "userBalance"
-        model.addAttribute("userBalance", user.getBalance()); // 将balance传递给前端
-        model.addAttribute("userId", user.getId()); // 如果前端需要userId也可以添加
+        model.addAttribute("userBalance", user.getBalance());
+        model.addAttribute("userId", user.getId());
 
         return "user/index";
     }
 
-    // 新增：视频详情页路由
+    /**
+     * 映射视频详情页面请求，传递任务信息及字幕内容到视图。
+     * 若字幕文件存在则读取内容，否则设置提示信息。
+     *
+     * @param taskId 任务ID，从路径变量获取
+     * @param model  Thymeleaf模型对象，用于向视图传递数据
+     * @return 视频详情页面模板路径（user/details.html）
+     */
     @GetMapping("/video-details/{taskId}")
     public String showVideoDetailsPage(@PathVariable Long taskId, Model model) {
-        // 尝试获取当前认证信息，并将其添加到Model中
+        // 传递当前用户信息到视图（若已认证）
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getName())) {
             String username = authentication.getName();
             User user = userService.getUserByUsername(username);
             model.addAttribute("username", username);
-            model.addAttribute("userBalance", user.getBalance()); // 使用 userBalance
+            model.addAttribute("userBalance", user.getBalance());
             model.addAttribute("userId", user.getId());
         }
 
+        // 查询任务并读取字幕文件内容
         Task task = taskService.getTaskById(taskId);
-        // 读取字幕文件内容（需要处理异常）
         try {
             Path srtPath = Paths.get(task.getTranslatedSrtFilePath());
-            // 检查文件是否存在
+            // 检查文件是否存在并读取内容
             if (Files.exists(srtPath)) {
                 String srtContent = new String(Files.readAllBytes(srtPath));
                 task.setTranslatedSrtContent(srtContent);
@@ -161,7 +182,13 @@ public class ViewController {
         return "user/details";
     }
 
-    // 新增：视频下载接口
+    /**
+     * 视频文件下载接口，根据任务ID获取视频文件并返回下载响应。
+     *
+     * @param taskId 任务ID，从路径变量获取
+     * @return 包含视频文件的响应实体，头部指定下载文件名
+     * @throws IOException 文件路径无效或读取失败时抛出
+     */
     @GetMapping("/download-video/{taskId}")
     public ResponseEntity<?> downloadVideo(@PathVariable Long taskId) throws IOException {
         Task task = taskService.getTaskById(taskId);
@@ -174,7 +201,13 @@ public class ViewController {
                 .body(resource);
     }
 
-    // 新增：字幕下载接口
+    /**
+     * 字幕文件下载接口，根据任务ID获取字幕文件并返回下载响应。
+     *
+     * @param taskId 任务ID，从路径变量获取
+     * @return 包含字幕文件的响应实体，头部指定下载文件名
+     * @throws IOException 文件路径无效或读取失败时抛出
+     */
     @GetMapping("/download-srt/{taskId}")
     public ResponseEntity<?> downloadSrt(@PathVariable Long taskId) throws IOException {
         Task task = taskService.getTaskById(taskId);
@@ -188,42 +221,44 @@ public class ViewController {
     }
 
     /**
-     * 映射文本翻译页面路由 "/SimpleTranslation"。
-     * 该方法获取当前认证用户的用户名和余额，并将其添加到Model中。
+     * 映射文本翻译页面请求，传递当前用户信息到视图。
+     * 若用户已认证，将用户名、余额、用户ID添加到模型。
      *
-     * @param model Thymeleaf 模型，用于向视图传递数据
-     * @return 字符串"SimpleTranslation"，表示返回SimpleTranslation.html视图
+     * @param model Thymeleaf模型对象，用于向视图传递数据
+     * @return 文本翻译页面模板路径（user/SimpleTranslation.html）
      */
     @GetMapping("/SimpleTranslation")
-    public String showTranslationPage(Model model) { // 添加 Model 参数
-        // 尝试获取当前认证信息
+    public String showTranslationPage(Model model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getName())) {
             String username = authentication.getName();
             User user = userService.getUserByUsername(username);
             model.addAttribute("username", username);
-            model.addAttribute("userBalance", user.getBalance()); // 使用 userBalance
+            model.addAttribute("userBalance", user.getBalance());
             model.addAttribute("userId", user.getId());
         }
-        return "user/SimpleTranslation"; // 返回 SimpleTranslation.html 模板
+        return "user/SimpleTranslation";
     }
 
-    //路由管理员登录页面adminlogin.html到/admin/login
+    /**
+     * 映射管理员登录页面请求，返回管理员登录视图。
+     *
+     * @return 管理员登录页面模板路径（admin/adminlogin.html）
+     */
     @GetMapping("/admin/login")
     public String showAdminLoginPage() {
-        return "admin/adminlogin"; // 返回 adminlogin.html 模板
+        return "admin/adminlogin";
     }
 
-//    //路由管理员主页/admin/index.html到/admin/index
-//    @GetMapping("/admin/index")
-//    public String showAdminIndexPage() {
-//        return "admin/adminindex"; // 返回 adminindex.html 模板
-//    }
-
-    //新增/logout定义到登录页面
+    /**
+     * 处理退出登录请求，使当前会话失效并重定向到登录页面。
+     *
+     * @param session 当前HTTP会话对象
+     * @return 重定向到登录页面的路径
+     */
     @GetMapping("/logout")
     public String logout(HttpSession session) {
-        session.invalidate(); // 清除session
-        return "redirect:/login"; // 重定向到登录页面
+        session.invalidate(); // 清除会话信息
+        return "redirect:/login";
     }
 }

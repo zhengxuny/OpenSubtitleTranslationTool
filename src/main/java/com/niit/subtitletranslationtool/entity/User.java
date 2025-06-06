@@ -5,34 +5,37 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal; // 使用BigDecimal类进行精确的金额计算
-import java.time.LocalDateTime; // 使用LocalDateTime类表示日期和时间
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
-@Data // Lombok注解，自动生成getter、setter、equals、hashCode和toString方法
-@NoArgsConstructor // Lombok注解，自动生成无参构造函数
-@AllArgsConstructor // Lombok注解，自动生成包含所有字段的构造函数
-@Builder // Lombok注解，自动生成构建器类，方便对象的链式调用创建
+/**
+ * 用户实体类，用于表示系统中的用户信息，包含用户基础属性及数据库映射字段。
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User {
-    // 用户ID，用于唯一标识用户，数据库中自动生成并递增
+    // 用户唯一标识ID，由数据库自动生成并自增
     private Long id;
 
-    // 用户名，可以用于用户标识和登录
+    // 登录用户名，用于用户身份标识和系统登录
     private String username;
 
-    // 密码，存储时经过加密处理
+    // 加密后的登录密码
     private String password;
 
-    // 邮箱地址，可用于密码找回、通知等功能
+    // 联系邮箱，用于密码找回和系统通知
     private String email;
 
-    // 用户账户余额，使用BigDecimal来避免浮点数运算中的精度问题
+    // 用户账户余额，使用BigDecimal保证数值计算精度
     private BigDecimal balance;
 
-    // 用户创建时间，默认为当前时间戳
+    // 用户记录创建时间，默认值为对象创建时的当前时间
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    // 记录用户信息最后更新的时间，默认为当前时间戳
+    // 用户信息最后更新时间，默认值为对象创建时的当前时间
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 }

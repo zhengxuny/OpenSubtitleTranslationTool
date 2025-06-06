@@ -1,39 +1,83 @@
 package com.niit.subtitletranslationtool.mapper;
 
-import com.niit.subtitletranslationtool.entity.User;
+import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
+import com.niit.subtitletranslationtool.entity.User;
 
-// 定义UserMapper接口，用于与数据库中用户表进行交互
+/**
+ * 用户表MyBatis映射接口，负责用户数据的持久化操作，
+ * 包含用户信息的增、删、改、查及统计等数据库交互方法。
+ */
 @Mapper
 public interface UserMapper {
 
-    // 插入新用户的方法，用于用户注册，传入一个用户对象，保存到用户表中
+    /**
+     * 插入新用户记录（用于用户注册场景）。
+     *
+     * @param user 待插入的用户对象（需包含完整用户信息）
+     */
     void insertUser(User user);
 
-    // 根据用户名查找用户的方法，输入要查询的用户名，返回一个用户对象，如果用户名不存在，则返回null
+    /**
+     * 根据用户名查询用户信息。
+     *
+     * @param username 待查询的用户名（非空）
+     * @return 匹配的用户对象；若不存在则返回null
+     */
     User findByUsername(@Param("username") String username);
 
-    // 根据用户邮箱查找用户的方法，输入要查询的邮箱地址，返回一个用户对象，如果邮箱地址不存在，则返回null
+    /**
+     * 根据邮箱地址查询用户信息。
+     *
+     * @param email 待查询的邮箱地址（非空）
+     * @return 匹配的用户对象；若不存在则返回null
+     */
     User findByEmail(@Param("email") String email);
 
-    // 根据用户ID查找用户的方法，输入要查询的用户ID，返回一个用户对象，如果用户ID不存在，则返回null
+    /**
+     * 根据用户ID查询用户信息。
+     *
+     * @param id 待查询的用户ID（非负）
+     * @return 匹配的用户对象；若不存在则返回null
+     */
     User findById(@Param("id") Long id);
 
-    // 更新用户信息的方法，传入一个用户对象，根据其ID更新用户表中的相应记录
+    /**
+     * 更新用户信息（根据用户ID更新对应记录）。
+     *
+     * @param user 包含新信息的用户对象（需包含有效ID）
+     */
     void updateUser(User user);
 
-    // 查询所有用户
+    /**
+     * 查询系统中所有用户信息。
+     *
+     * @return 所有用户对象的列表（可能为空列表）
+     */
     List<User> findAllUsers();
 
-    // 按ID删除用户
+    /**
+     * 根据用户ID删除指定用户记录。
+     *
+     * @param id 待删除的用户ID（非负）
+     */
     void deleteUser(@Param("id") Long id);
 
-    // 统计总用户数
+    /**
+     * 统计系统中注册的总用户数量。
+     *
+     * @return 系统总用户数（非负整数）
+     */
     int countAllUsers();
 
-    // 最近注册用户（按创建时间倒序，取前n条）
+    /**
+     * 查询最近注册的用户（按创建时间倒序排序）。
+     *
+     * @param limit 需要获取的最近记录数量（正整数）
+     * @return 按创建时间倒序排列的前limit条用户记录列表
+     */
     List<User> findRecentUsers(int limit);
 }

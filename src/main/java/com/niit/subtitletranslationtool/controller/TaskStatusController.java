@@ -9,19 +9,28 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-// 定义一个控制器类，用于处理与任务相关的API请求
+/**
+ * 任务状态管理控制器，负责处理任务状态查询、异常任务续处理、任务取消及结果文件下载等API请求。
+ */
 @RestController
 @RequestMapping("/api/task")
 public class TaskStatusController {
 
-    // 任务映射器，用于与数据库进行交互
     private final TaskMapper taskMapper;
-    // 异步视频处理服务，用于执行视频处理任务
     private final AsyncVideoProcessingService asyncVideoProcessingService;
 
-    // 构造函数，通过构造注入初始化依赖
+    /**
+     * 构造注入初始化控制器依赖
+     *
+     * @param taskMapper                   任务数据库操作映射器，用于任务数据持久化
+     * @param asyncVideoProcessingService  异步视频处理服务，用于执行视频处理任务
+     */
     @Autowired
     public TaskStatusController(
             TaskMapper taskMapper,
@@ -30,84 +39,105 @@ public class TaskStatusController {
         this.asyncVideoProcessingService = asyncVideoProcessingService;
     }
 
-    // 获取任务状态的GET请求接口
+    /**
+     * 查询指定任务的当前状态信息
+     *
+     * @param taskId 待查询的任务ID
+     * @return 包含任务对象的响应实体（存在时）；或404未找到响应（不存在时）
+     */
     @GetMapping("/status/{taskId}")
     public ResponseEntity<Task> getTaskStatus(@PathVariable Long taskId) {
-        // 根据taskId查找任务
+        // 根据任务ID查询数据库中的任务记录
         Task task = taskMapper.findById(taskId);
-        // 如果找到任务，则返回任务对象；否则，返回404 Not Found
+        // 存在则返回任务对象，不存在返回404响应
         return task != null ? ResponseEntity.ok(task) : ResponseEntity.notFound().build();
     }
 
-    // 处理用户选择继续处理损坏视频的POST请求接口
+    /**
+     * 处理用户对损坏视频任务的继续处理请求
+     *
+     * @param taskId 待续处理的任务ID
+     * @return 操作结果响应（成功时返回提示信息；任务不存在返回404；状态不符返回400）
+     */
     @PostMapping("/continue/{taskId}")
     public ResponseEntity<String> continueDamagedTask(@PathVariable Long taskId) {
-        // 根据taskId查找任务
+        // 根据任务ID查询数据库中的任务记录
         Task task = taskMapper.findById(taskId);
-        // 如果找不到任务，则返回404 Not Found
         if (task == null) {
             return ResponseEntity.notFound().build();
         }
-        // 如果任务状态不是等待用户选择的损坏状态，则返回400 Bad Request
+
+        // 验证任务当前状态是否为等待用户处理的损坏状态
         if (task.getStatus() != TaskStatus.VIDEO_DAMAGED_AWAITING_USER_CHOICE) {
             return ResponseEntity.badRequest().body("当前状态不允许继续处理");
         }
-        // 重新触发异步处理
+
+        // 调用异步服务重新处理任务
         asyncVideoProcessingService.processTaskAsync(taskId);
-        // 返回成功信息
         return ResponseEntity.ok("任务已重新启动处理");
     }
 
-    // 处理用户选择取消任务的POST请求接口
+    /**
+     * 处理用户主动取消任务的请求
+     *
+     * @param taskId 待取消的任务ID
+     * @return 操作结果响应（成功时返回提示信息；任务不存在返回404）
+     */
     @PostMapping("/cancel/{taskId}")
     public ResponseEntity<String> cancelTask(@PathVariable Long taskId) {
-        // 根据taskId查找任务
+        // 根据任务ID查询数据库中的任务记录
         Task task = taskMapper.findById(taskId);
-        // 如果找不到任务，则返回404 Not Found
         if (task == null) {
             return ResponseEntity.notFound().build();
         }
-        // 设置任务状态为取消，并设置错误信息为用户主动取消
+
+        // 更新任务状态为取消，并记录用户主动取消的原因
         task.setStatus(TaskStatus.CANCELLED);
         task.setErrorMessage("用户主动取消任务");
-        // 更新数据库中的任务记录
+        // 持久化更新后的任务状态
         taskMapper.updateTask(task);
-        // 返回成功信息
+
         return ResponseEntity.ok("任务已取消");
     }
 
-    // 获取翻译后的SRT文件进行下载的GET请求接口
+    /**
+     * 下载翻译后的SRT字幕文件
+     *
+     * @param taskId 目标任务ID
+     * @return 包含SRT文件的资源响应（存在时）；或404未找到响应（不存在时）
+     */
     @GetMapping("/download/srt/translated/{taskId}")
     public ResponseEntity<Resource> downloadTranslatedSrt(@PathVariable Long taskId) {
-        // 根据taskId查找任务
+        // 根据任务ID查询数据库中的任务记录并校验文件路径有效性
         Task task = taskMapper.findById(taskId);
-        // 如果找不到任务或翻译后的SRT文件路径为空，则返回404 Not Found
         if (task == null || task.getTranslatedSrtFilePath() == null) {
             return ResponseEntity.notFound().build();
         }
 
-        // 创建一个文件系统资源对象，表示翻译后的SRT文件
+        // 构造文件资源对象并设置下载响应头
         Resource resource = new FileSystemResource(task.getTranslatedSrtFilePath());
-        // 返回HTTP响应实体，包含文件内容和一些HTTP头部信息如Content-Disposition
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         "attachment; filename=\"" + task.getTranslatedSrtFilename() + "\"")
                 .body(resource);
     }
 
-    // 获取添加字幕后的视频文件进行下载的GET请求接口
+    /**
+     * 下载添加字幕后的视频文件
+     *
+     * @param taskId 目标任务ID
+     * @return 包含视频文件的资源响应（存在时）；或404未找到响应（不存在时）
+     */
     @GetMapping("/download/video/subtitled/{taskId}")
     public ResponseEntity<Resource> downloadSubtitledVideo(@PathVariable Long taskId) {
-        // 根据taskId查找任务
+        // 根据任务ID查询数据库中的任务记录并校验文件路径有效性
         Task task = taskMapper.findById(taskId);
-        // 如果找不到任务或添加字幕后的视频文件路径为空，则返回404 Not Found
         if (task == null || task.getSubtitledVideoFilePath() == null) {
             return ResponseEntity.notFound().build();
         }
 
-        // 创建一个文件系统资源对象，表示添加字幕后的视频文件
+        // 构造文件资源对象并设置下载响应头
         Resource resource = new FileSystemResource(task.getSubtitledVideoFilePath());
-        // 返回HTTP响应实体，包含文件内容和一些HTTP头部信息如Content-Disposition
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         "attachment; filename=\"" + task.getSubtitledVideoFilename() + "\"")

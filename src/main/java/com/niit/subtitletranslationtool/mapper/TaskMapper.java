@@ -1,57 +1,76 @@
 package com.niit.subtitletranslationtool.mapper;
 
-import com.niit.subtitletranslationtool.entity.Task;
-import com.niit.subtitletranslationtool.enums.TaskStatus;
+import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
+import com.niit.subtitletranslationtool.entity.Task;
+import com.niit.subtitletranslationtool.enums.TaskStatus;
 
 /**
- * TaskMapper接口用于定义操作任务数据的CRUD方法
- * 通过注解@Mapper标识这是一个MyBatis的Mapper接口
+ * 定义任务数据操作的MyBatis映射接口，提供任务信息的CRUD及统计查询功能。
  */
 @Mapper
 public interface TaskMapper {
 
     /**
-     * 插入新的任务到数据库
-     * @param task: 任务对象，包含了需要插入的任务信息
+     * 向数据库插入新的任务记录。
+     *
+     * @param task 待插入的任务对象，包含完整的任务信息（非空）
      */
     void insertTask(Task task);
 
     /**
-     * 根据ID查询单个任务信息
-     * 此方法将在后续阶段用于获取任务详情
-     * @param id: 任务的唯一标识符，数据库中的主键
-     * @return: 返回Task对象，包含了查询到的任务信息；如果未找到相应ID的任务，则返回null
+     * 根据任务ID查询对应的任务信息。
+     *
+     * @param id 任务的唯一标识符（数据库主键，非空）
+     * @return 匹配的任务对象；若不存在则返回null
      */
     Task findById(Long id);
 
     /**
-     * 更新任务的信息和状态
-     * 此方法将用于修改数据库中存在的任务的详细信息或执行状态
-     * @param task: 包含需要更新的任务信息的Task对象
+     * 更新数据库中已有任务的信息（如内容、状态等）。
+     *
+     * @param task 包含更新后信息的任务对象（需包含有效ID）
      */
     void updateTask(Task task);
 
     /**
-     * 根据用户ID查询所有任务信息
-     * 此方法将用于获取特定用户的所有任务
-     * @param userId: 用户的唯一标识符
-     * @return: 返回List<Task>对象，包含了查询到的任务信息；如果没有找到相关的任务，则返回空列表
+     * 查询指定用户的所有任务记录。
+     *
+     * @param userId 用户的唯一标识符（非空）
+     * @return 用户关联的任务列表；无匹配记录时返回空列表
      */
     List<Task> findByUserId(Long userId);
 
-    //查找全部任务
+    /**
+     * 查询数据库中所有任务记录。
+     *
+     * @return 所有任务的列表；无记录时返回空列表
+     */
     List<Task> findAllTasks();
 
-    // 统计总任务数
+    /**
+     * 统计数据库中所有任务的总数量。
+     *
+     * @return 任务总数（非负整数）
+     */
     int countAllTasks();
 
-    // 按状态统计任务数
+    /**
+     * 按任务状态统计符合条件的任务数量。
+     *
+     * @param status 待统计的任务状态（非空）
+     * @return 指定状态的任务数量（非负整数）
+     */
     int countTasksByStatus(@Param("status") TaskStatus status);
 
-    // 最近任务（按创建时间倒序，取前n条）
+    /**
+     * 查询最近创建的任务记录（按创建时间倒序）。
+     *
+     * @param limit 限制返回的最大记录数（正整数）
+     * @return 最近创建的任务列表；无记录时返回空列表
+     */
     List<Task> findRecentTasks(int limit);
 }

@@ -1,70 +1,74 @@
 package com.niit.subtitletranslationtool.entity;
 
-import com.niit.subtitletranslationtool.enums.TaskStatus;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-
 import java.beans.Transient;
 import java.time.LocalDateTime;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import com.niit.subtitletranslationtool.enums.TaskStatus;
+
+/**
+ * 字幕翻译工具中的任务实体类，用于封装任务全生命周期的元数据及状态信息。
+ * 包含视频/音频/字幕文件的存储信息、任务处理状态、错误信息、语言检测结果、用户关联信息及时间戳等核心数据。
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-// Task类定义了一个字幕翻译工具中的任务实体。
-// 它包含了处理视频文件、音频文件、字幕文件的信息以及任务的状态和元信息。
 public class Task {
-    // id 定义了数据库中自动生成的任务唯一标识符。
+    // 数据库自动生成的任务唯一标识符
     private Long id;
 
-    // originalVideoFilename 定义了上传视频文件的原始文件名，此字段在上传阶段必填，不能为空。
+    // 上传阶段用户提供的原始视频文件名（必填）
     private String originalVideoFilename;
-    // storedVideoFilename 定义了上传后在系统中存储的视频文件的文件名。
+    // 系统存储时使用的视频文件名（避免重名）
     private String storedVideoFilename;
-    // videoFilePath 定义了上传视频文件在系统中的完整存储路径。
+    // 视频文件在存储系统中的完整路径
     private String videoFilePath;
-    // burnSubtitles 定义了一个布尔值，用来指示是否需要将字幕文件烧录到视频文件中。
+    // 标记是否需要将字幕烧录到视频画面中（布尔标识）
     private boolean burnSubtitles;
 
-    // extractedAudioFilename 定义了从原视频中提取的音频文件的文件名。
+    // 从视频中提取的音频文件名称
     private String extractedAudioFilename;
-    // extractedAudioFilePath 定义了提取音频文件在系统中的完整存储路径。
+    // 提取音频文件的完整存储路径
     private String extractedAudioFilePath;
-    // originalSrtFilename 定义了上传字幕文件的原始文件名。
+    // 上传阶段用户提供的原始字幕文件名
     private String originalSrtFilename;
-    // originalSrtFilePath 定义了上传字幕文件在系统中的完整存储路径。
+    // 原始字幕文件的完整存储路径
     private String originalSrtFilePath;
-    // translatedSrtFilename 定义了翻译后字幕文件的文件名。
+    // 翻译后生成的字幕文件名称
     private String translatedSrtFilename;
-    // translatedSrtFilePath 定义了翻译后字幕文件在系统中的完整存储路径。
+    // 翻译后字幕文件的完整存储路径
     private String translatedSrtFilePath;
-    // subtitledVideoFilename 定义了添加字幕后的视频文件的文件名。
+    // 添加字幕后的输出视频文件名
     private String subtitledVideoFilename;
-    // subtitledVideoFilePath 定义了添加字幕后的视频文件在系统中的完整存储路径。
+    // 添加字幕后视频的完整存储路径
     private String subtitledVideoFilePath;
-    private String summary;  // Add summary field
-     // 需要lombok注解或JPA注解，根据实际ORM调整
+
+    // 任务简要描述信息（可选摘要）
+    private String summary;
+    // 翻译后的字幕文件内容（需根据ORM配置持久化策略）
     private String translatedSrtContent;
 
-
-    // status 定义了当前任务的状态，初始状态为等待上传。该字段在不同任务执行阶段会被更新。
-    @Builder.Default // 使用Builder模式创建对象时，status默认值为PENDING_UPLOAD
+    // 任务当前处理状态（初始值：等待上传）
+    @Builder.Default
     private TaskStatus status = TaskStatus.PENDING_UPLOAD;
-    // errorMessage 定义了在任务处理过程中可能出现的错误信息，如果任务顺利进行此字段通常为空。
+    // 任务执行异常时的错误详情（正常状态为空）
     private String errorMessage;
-    // detectedLanguage 定义了在任务处理过程中检测到的字幕或语音的语言识别结果。
+    // 自动检测到的源语言类型（如"en-US"）
     private String detectedLanguage;
-    // languageProbability 定义了检测语言的概率值，值的范围在0到1之间。
+    // 语言检测结果的置信度（0-1之间的浮点值）
     private Float languageProbability;
-    private Long userId;  // 新增：关联用户ID
+    // 关联的用户唯一标识（用于权限控制）
+    private Long userId;
 
-    // createdAt 定义了任务创建的时间，默认值为对象创建后的当前时间。
-    @Builder.Default // 使用Builder模式创建对象时，createdAt默认值为当前时间
+    // 任务记录创建时间（默认值：对象实例化时间）
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
-    // updatedAt 定义了任务最后一次更新的时间，默认值也为对象创建后的当前时间。
-    // 此字段每次对象被修改并保存后都会被更新为当前时间。
-    @Builder.Default // 使用Builder模式创建对象时，updatedAt默认值为当前时间
+    // 任务信息最后更新时间（默认值：对象实例化时间，每次修改后自动更新）
+    @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 }

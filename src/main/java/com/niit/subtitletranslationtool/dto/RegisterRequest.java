@@ -1,21 +1,21 @@
 package com.niit.subtitletranslationtool.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 /**
- * 这是一个用于注册请求的数据传输对象（DTO）类。
- * 它封装了用户注册所需的必要信息，并利用Lombok库简化代码。
+ * 用户注册请求的数据传输对象（DTO），封装注册流程所需的核心用户信息。
+ * 包含用户名、密码和电子邮件三个必要字段，用于在客户端与服务端之间传输注册请求数据。
  */
 @Data
-@NoArgsConstructor // 无参构造函数，用于没有初始参数的情况下创建RegisterRequest对象
-@AllArgsConstructor // 有参构造函数，用于一次性初始化所有重要字段的RegisterRequest对象
+@NoArgsConstructor
+@AllArgsConstructor
 public class RegisterRequest {
-    // 用户名字段，用于存储用户选择的唯一标识符
+    // 用户唯一标识符，用于登录认证和用户身份识别
     private String username;
-    // 密码字段，用于存储用户选择的私密访问凭证
+    // 登录密码字段，存储用户设置的访问凭证（需配合加密机制存储）
     private String password;
-    // 电子邮件字段，用于存储用户的主要联系方式，也是身份验证的重要方法之一
+    // 联系邮箱字段，用于账户验证、密码找回等关键操作的通知渠道
     private String email;
 }

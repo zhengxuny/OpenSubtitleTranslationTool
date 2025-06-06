@@ -26,34 +26,28 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * 视频上传控制器类，管理与视频上传和处理相关的请求。
+ * 视频上传控制器，处理视频文件上传请求并协调后续异步处理流程。
+ * 提供视频文件存储、用户余额校验、任务创建及异步处理启动等核心功能。
  */
 @RestController
 @RequestMapping("/api/video")
 public class VideoUploadController {
 
-    // 依赖注入存储服务，用于存储文件到服务器本地或云存储
     private final StorageService storageService;
-
-    // 依赖注入任务映射器，用于操作数据库中的任务实体
     private final TaskMapper taskMapper;
-
-    // 依赖注入异步视频处理服务，用于处理视频上传后的所有后台任务
     private final AsyncVideoProcessingService asyncVideoProcessingService;
-
-    // 通过配置文件读取文件上传目录，并将其转换为绝对路径使用
     private final Path uploadDir;
-
     @Autowired
-    private UserService userService; // 注入 UserService
+    private UserService userService;
 
     /**
-     * 构造函数，注入必要服务实例和上传目录配置。
+     * 构造函数，初始化依赖组件及上传目录路径。
+     * 自动处理上传目录的绝对路径转换（若配置为相对路径则基于项目根目录解析）。
      *
-     * @param storageService 存储服务实例，用于处理文件存储
-     * @param taskMapper 任务映射器实例，用于操作数据库任务
-     * @param asyncVideoProcessingService 异步视频处理服务实例，用于处理后台视频任务
-     * @param uploadDir 配置文件中定义的文件上传目录
+     * @param storageService 用于文件存储操作的服务组件
+     * @param taskMapper 数据库任务表操作组件
+     * @param asyncVideoProcessingService 视频异步处理服务组件
+     * @param uploadDir 配置文件中指定的上传目录路径（字符串形式）
      */
     public VideoUploadController(
             StorageService storageService,
@@ -69,62 +63,62 @@ public class VideoUploadController {
     }
 
     /**
-     * 处理视频文件上传并启动异步处理任务。
+     * 处理视频文件上传请求，执行用户余额校验、文件存储、任务创建及异步处理启动。
      *
-     * @param file 上传的视频文件对象
-     * @param burnSubtitles 是否需要将字幕烧录到视频中的标志位
-     * @return 上传响应实体对象，包括任务ID、处理消息、原始文件名和存储文件名
+     * @param file 客户端上传的视频文件对象
+     * @param burnSubtitles 是否将字幕烧录到视频中的标志位（可选，默认false）
+     * @return 包含任务ID、处理状态的上传响应实体
      */
     @PostMapping("/upload")
     public ResponseEntity<UploadResponse> handleFileUpload(
             @RequestParam("file") MultipartFile file,
             @RequestParam(required = false, defaultValue = "false") boolean burnSubtitles) {
         try {
-            // 获取当前用户信息
+            // 从安全上下文获取当前认证用户信息
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             User user = userService.getUserByUsername(username);
 
-            // 检查余额是否≥10元
+            // 校验用户余额是否满足最低要求（≥10元）
             if (user.getBalance().compareTo(BigDecimal.TEN) < 0) {
                 return ResponseEntity.badRequest().body(
                         new UploadResponse(null, "余额不足（需≥10元）", file.getOriginalFilename(), null)
                 );
             }
-            // 生成唯一文件名，避免文件覆盖问题
+
+            // 生成唯一文件前缀避免同名覆盖，执行文件存储操作
             String uniquePrefix = UUID.randomUUID().toString() + "_";
             String storedFilename = storageService.store(file, uniquePrefix);
 
-            // 创建任务实体并设置其属性
+            // 初始化任务实体并设置基础属性
             Task task = Task.builder()
-                    .originalVideoFilename(file.getOriginalFilename())  // 设置文件原始名称
-                    .storedVideoFilename(storedFilename)              // 设置文件存储名称
-                    .videoFilePath(uploadDir.resolve(storedFilename).toAbsolutePath().toString())  // 设置视频文件路径
-                    .status(TaskStatus.UPLOADED)                      // 设置任务状态为已上传
-                    .createdAt(LocalDateTime.now())                   // 设置任务创建时间
-                    .updatedAt(LocalDateTime.now())                   // 设置任务最近一次更新时间
-                    .userId(user.getId())  // 新增
+                    .originalVideoFilename(file.getOriginalFilename())
+                    .storedVideoFilename(storedFilename)
+                    .videoFilePath(uploadDir.resolve(storedFilename).toAbsolutePath().toString())
+                    .status(TaskStatus.UPLOADED)
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .userId(user.getId())
                     .build();
 
-            // 将用户的选择（是否烧录字幕）保存到任务实体中
+            // 记录用户选择的字幕烧录配置
             task.setBurnSubtitles(burnSubtitles);
 
-            // 将任务实体插入数据库，并获取自动生成的任务ID
+            // 插入新任务到数据库并获取自增ID
             taskMapper.insertTask(task);
 
-            // 启动异步处理流程
+            // 触发异步视频处理流程（不阻塞当前请求）
             asyncVideoProcessingService.processTaskAsync(task.getId());
 
-            // 立即向客户端返回上传成功响应以及任务信息，不等待处理结果
+            // 返回包含任务信息的成功响应
             return ResponseEntity.ok(new UploadResponse(
                     task.getId(),
                     "文件上传成功，任务已启动（异步处理中）",
                     file.getOriginalFilename(),
                     storedFilename
             ));
-
-        // 捕获所有可能的异常情况，并向客户端返回500状态码和具体的错误信息
         } catch (Exception e) {
+            // 异常处理：返回包含错误信息的500状态响应
             return ResponseEntity.internalServerError().body(new UploadResponse(
                     null,
                     "文件上传失败：" + e.getMessage(),

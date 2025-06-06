@@ -16,130 +16,144 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 
 /**
- * UserService 类实现了用户相关的业务逻辑，包括用户注册、登录验证和 Spring Security 的用户认证。
- * 实现了 UserDetailsService 接口，用于 Spring Security 的用户认证。
+ * 用户服务实现类，处理用户注册、认证、余额管理等业务逻辑。
+ * 实现 Spring Security 的 UserDetailsService 接口，提供用户认证功能。
  */
-@Service // 使用 Spring 的 @Service 注解，将该类标记为一个服务组件，由 Spring 容器管理。
+@Service
 public class UserService implements UserDetailsService {
 
-    private final UserMapper userMapper; // 用于访问数据库中用户数据的 Mapper 接口。
-    private final PasswordEncoder passwordEncoder; // 用于密码加密的 PasswordEncoder 接口。
+    private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     /**
-     * 构造函数，用于依赖注入。
-     * @param userMapper  用户 Mapper，用于数据库操作。
-     * @param passwordEncoder  密码加密器，用于加密用户密码。
+     * 构造函数，依赖注入用户数据访问对象和密码加密器。
+     *
+     * @param userMapper      用户数据访问接口
+     * @param passwordEncoder 密码加密器
      */
-    @Autowired // 使用 Spring 的 @Autowired 注解，实现构造函数注入。
+    @Autowired
     public UserService(UserMapper userMapper, PasswordEncoder passwordEncoder) {
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
     }
 
     /**
-     * 用户注册逻辑。
-     * @param request 注册请求 DTO，包含用户名、密码和邮箱。
-     * @return 注册成功的用户实体。
-     * @throws RuntimeException 如果用户名或邮箱已存在，抛出运行时异常。
+     * 注册新用户。
+     *
+     * @param request 用户注册请求对象
+     * @return 注册成功的用户实体
+     * @throws RuntimeException 用户名或邮箱已存在时抛出
      */
-    @Transactional // 使用 Spring 的 @Transactional 注解，保证事务的一致性。
+    @Transactional
     public User registerUser(RegisterRequest request) {
-        // 检查用户名是否已存在。
         if (userMapper.findByUsername(request.getUsername()) != null) {
-            throw new RuntimeException("用户名已存在"); // 如果用户名已存在，抛出异常。
+            throw new RuntimeException("用户名已存在");
         }
-        // 检查邮箱是否已存在。
         if (userMapper.findByEmail(request.getEmail()) != null) {
-            throw new RuntimeException("邮箱已存在"); // 如果邮箱已存在，抛出异常。
+            throw new RuntimeException("邮箱已存在");
         }
 
-        // 构建用户实体。
         User user = User.builder()
-                .username(request.getUsername()) // 设置用户名。
-                .password(passwordEncoder.encode(request.getPassword())) // 密码加密后存储。
-                .email(request.getEmail()) // 设置邮箱。
-                .balance(BigDecimal.ZERO) // 注册时默认余额为0。
-                .createdAt(LocalDateTime.now()) // 设置创建时间。
-                .updatedAt(LocalDateTime.now()) // 设置更新时间。
+                .username(request.getUsername())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .email(request.getEmail())
+                .balance(BigDecimal.ZERO)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
-        userMapper.insertUser(user); // 将用户实体插入数据库。
-        return user; // 返回注册成功的用户实体。
+
+        userMapper.insertUser(user);
+        return user;
     }
 
     /**
-     * 根据用户名加载用户详情，供 Spring Security 使用。
-     * @param username 用户名。
-     * @return UserDetails 对象，包含用户名、密码和权限信息。
-     * @throws UsernameNotFoundException 如果用户不存在，抛出此异常。
+     * 根据用户名加载用户信息，用于 Spring Security 认证流程。
+     *
+     * @param username 用户名
+     * @return 用户认证信息对象
+     * @throws UsernameNotFoundException 用户不存在时抛出
      */
-    @Override // 实现了 UserDetailsService 接口的 loadUserByUsername 方法。
+    @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userMapper.findByUsername(username); // 根据用户名从数据库中查找用户。
+        User user = userMapper.findByUsername(username);
         if (user == null) {
-            throw new UsernameNotFoundException("用户未找到: " + username); // 如果用户不存在，抛出异常。
+            throw new UsernameNotFoundException("用户未找到: " + username);
         }
-        // 这里返回 Spring Security 的 User 对象，包含用户名、加密后的密码和权限。
-        // 暂时不设置具体角色，只返回一个空权限列表，表示已认证。
+
         return new org.springframework.security.core.userdetails.User(
-                user.getUsername(), // 用户名。
-                user.getPassword(), // 密码。
-                Collections.emptyList() // 暂时不分配权限，后续可扩展。
+                user.getUsername(),
+                user.getPassword(),
+                Collections.emptyList()
         );
     }
 
     /**
-     * 验证用户登录凭据。
-     * @param username 用户名。
-     * @param rawPassword 原始密码。
-     * @return 认证成功的用户实体。
-     * @throws RuntimeException 如果认证失败，抛出运行时异常。
+     * 用户登录认证。
+     *
+     * @param username    用户名
+     * @param rawPassword 原始密码
+     * @return 认证成功的用户实体
+     * @throws RuntimeException 用户不存在或密码错误时抛出
      */
     public User authenticateUser(String username, String rawPassword) {
-        User user = userMapper.findByUsername(username); // 根据用户名从数据库中查找用户。
+        User user = userMapper.findByUsername(username);
         if (user == null || !passwordEncoder.matches(rawPassword, user.getPassword())) {
-            throw new RuntimeException("用户名或密码不正确"); // 如果用户不存在或密码不匹配，抛出异常。
+            throw new RuntimeException("用户名或密码不正确");
         }
-        return user; // 返回认证成功的用户实体。
-    }
-
-        /**
-         * 用户充值功能。
-         * @param userId 用户ID。
-         * @param amount 充值金额。
-         * @return 充值后的用户实体。
-         */
-    @Transactional
-    public User topUpUserBalance(Long userId, BigDecimal amount) {
-        // 校验金额合法性（示例：金额必须大于0）
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("充值金额必须大于0");
-        }
-        // 查询用户
-        User user = userMapper.findById(userId);
-        if (user == null) {
-            throw new RuntimeException("用户不存在");
-        }
-        // 更新余额（原余额 + 充值金额）
-        user.setBalance(user.getBalance().add(amount));
-        userMapper.updateUser(user); // 使用现有updateUser方法更新数据库
 
         return user;
     }
 
     /**
-     * 根据用户名获取用户信息（无需密码验证）
+     * 用户余额充值。
+     *
+     * @param userId 用户ID
+     * @param amount 充值金额
+     * @return 更新后的用户实体
+     * @throws RuntimeException 金额无效或用户不存在时抛出
+     */
+    @Transactional
+    public User topUpUserBalance(Long userId, BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("充值金额必须大于0");
+        }
+
+        User user = userMapper.findById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+
+        user.setBalance(user.getBalance().add(amount));
+        userMapper.updateUser(user);
+
+        return user;
+    }
+
+    /**
+     * 根据用户名获取用户信息。
+     *
      * @param username 用户名
      * @return 用户实体
+     * @throws RuntimeException 用户不存在时抛出
      */
     public User getUserByUsername(String username) {
         User user = userMapper.findByUsername(username);
         if (user == null) {
             throw new RuntimeException("用户不存在");
         }
+
         return user;
     }
 
-        @Transactional
+    /**
+     * 扣除用户余额。
+     *
+     * @param userId 用户ID
+     * @param amount 扣除金额
+     * @return 更新后的用户实体
+     * @throws RuntimeException 金额无效、用户不存在或余额不足时抛出
+     */
+    @Transactional
     public User deductBalance(Long userId, BigDecimal amount) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("扣除金额必须大于0");
@@ -156,6 +170,7 @@ public class UserService implements UserDetailsService {
 
         user.setBalance(user.getBalance().subtract(amount));
         userMapper.updateUser(user);
+
         return user;
     }
 }
