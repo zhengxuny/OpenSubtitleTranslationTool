@@ -1,0 +1,54 @@
+/* 基础布局样式 */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    position: relative;
+    margin: 0;
+}
+
+/* 背景模糊层 */
+body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/static/photo/bg.jpg');
+    background-size: cover;
+    background-position: center;
+    z-index: -1;
+}
+
+/* 表单容器 */
+.form-container {
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    z-index: 1;
+}
+
+/* 卡片模糊效果 */
+.card {
+    background-color: rgba(240, 240, 240, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(200, 200, 200, 0.5);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+}
+
+/* 输入框基础样式 */
+.form-control {
+    background-color: rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(200, 200, 200, 0.5);
+    transition: all 0.3s ease;
+}
+
+/* 输入框聚焦效果 */
+.form-control:focus {
+    background-color: rgba(255, 255, 255, 0.6);
+    border-color: rgba(13, 110, 253, 0.6);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
