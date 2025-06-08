@@ -7,7 +7,24 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/admin-common.css"> <!-- 公共样式 -->
+    <!-- 添加Chart.js库 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+<!-- 公共样式补充（可移至admin-common.css） -->
+<style>
+    .icon-circle {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.5rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .list-group-item {
+        border: none;
+        padding: 1rem 1.25rem;
+    }
+</style>
 <body>
 <!-- 统一导航栏 -->
 <div th:replace="~{fragments/admin-navbar :: admin-navbar}"></div>
@@ -15,6 +32,35 @@
 <!-- 主容器 -->
 <div class="container admin-container mt-5">
     <!-- 核心数据概览 -->
+
+    <!-- 修改为响应式布局行 -->
+    <div class="row g-4 mb-5">
+        <!-- 新增用户趋势图表卡片 -->
+        <div class="col-md-6">
+            <div class="card admin-card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">每日新增用户趋势</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="dailyUsersChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 新增任务趋势图表卡片 -->
+        <div class="col-md-6">
+            <div class="card admin-card">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">每日新增任务趋势</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="dailyTasksChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <div class="row g-4 mb-5">
         <div class="col-md-3 col-sm-6">
             <div class="card admin-card">
@@ -133,21 +179,115 @@
     </div>
 </div>
 
-<!-- 公共样式补充（可移至admin-common.css） -->
-<style>
-    .icon-circle {
-        width: 2.5rem;
-        height: 2.5rem;
-        border-radius: 0.5rem;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-    .list-group-item {
-        border: none;
-        padding: 1rem 1.25rem;
-    }
-</style>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    // 初始化每日新增用户图表
+    function initDailyUsersChart() {
+        const dailyNewUsers = /*[[${dailyNewUsers}]]*/ [];
+
+        const labels = dailyNewUsers.map(item => {
+            return new Date(item.date).toISOString().slice(5, 10).replace('-', '/');
+        });
+        const data = dailyNewUsers.map(item => item.count);
+
+        if (labels.length === 0 || data.length === 0) {
+            const ctx = document.getElementById('dailyUsersChart').getContext('2d');
+            ctx.font = '16px Arial';
+            ctx.fillStyle = '#999';
+            ctx.textAlign = 'center';
+            ctx.fillText('暂无数据', ctx.canvas.width / 2, ctx.canvas.height / 2);
+            return;
+        }
+
+        const ctx = document.getElementById('dailyUsersChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '新增用户数',
+                    data: data,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value) {
+                                if (value % 1 === 0) {
+                                    return value;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 初始化每日新增任务图表
+    function initDailyTasksChart() {
+        const dailyNewTasks = /*[[${dailyNewTasks}]]*/ [];
+
+        const taskLabels = dailyNewTasks.map(item =>
+            new Date(item.date).toISOString().slice(5, 10).replace('-', '/')
+        );
+        const taskData = dailyNewTasks.map(item => item.count);
+
+        const taskCtx = document.getElementById('dailyTasksChart').getContext('2d');
+
+        if (taskLabels.length === 0 || taskData.length === 0) {
+            taskCtx.font = '16px Arial';
+            taskCtx.fillStyle = '#999';
+            taskCtx.textAlign = 'center';
+            taskCtx.fillText('暂无数据', taskCtx.canvas.width / 2, taskCtx.canvas.height / 2);
+            return;
+        }
+
+        new Chart(taskCtx, {
+            type: 'line',
+            data: {
+                labels: taskLabels,
+                datasets: [{
+                    label: '新增任务数',
+                    data: taskData,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',  // 青绿色调
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value) {
+                                return value % 1 === 0 ? value : '';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 页面加载时初始化两个图表
+    window.onload = function() {
+        initDailyUsersChart();  // 原有用户图表初始化函数（需要提取为独立函数）
+        initDailyTasksChart();  // 新增任务图表初始化
+    };
+</script>
+
 </body>
 </html>

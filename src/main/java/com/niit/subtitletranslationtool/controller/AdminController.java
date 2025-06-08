@@ -201,6 +201,15 @@ public class AdminController {
         model.addAttribute("recentTasks", recentTasks);
         model.addAttribute("recentUsers", recentUsers);
 
+        // 获取最近7天新增用户数据
+        List<Map<String, Object>> dailyNewUsers = userMapper.countDailyNewUsers(7);
+        model.addAttribute("dailyNewUsers", dailyNewUsers);
+
+
+        // 获取最近7天新增任务数据（新增）
+        List<Map<String, Object>> dailyNewTasks = taskMapper.countDailyNewTasks(7);
+        model.addAttribute("dailyNewTasks", dailyNewTasks);
+
         return "admin/adminindex";
     }
 

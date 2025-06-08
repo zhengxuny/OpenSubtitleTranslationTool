@@ -1,7 +1,9 @@
 package com.niit.subtitletranslationtool.mapper;
 
 import java.util.List;
+import java.util.Map;
 
+import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -80,4 +82,13 @@ public interface UserMapper {
      * @return 按创建时间倒序排列的前limit条用户记录列表
      */
     List<User> findRecentUsers(int limit);
+
+    /**
+     * 统计每日新增用户数量（过去N天）。
+     *
+     * @param days 需要获取的天数
+     * @return 以日期为键，用户数量为值的Map
+     */
+    @MapKey("date")  // 指定使用结果中的date字段作为Map的键
+    List<Map<String, Object>> countDailyNewUsers(@Param("days") int days);
 }

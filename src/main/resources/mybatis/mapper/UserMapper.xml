@@ -123,4 +123,33 @@
         LIMIT #{limit}
     </select>
 
+
+    <!-- 新增用户每日统计 -->
+    <select id="countDailyNewUsers" resultType="map">
+        SELECT
+            DATE_FORMAT(date_range.date, '%Y-%m-%d') AS date,
+            IFNULL(user_counts.count, 0) AS count
+        FROM (
+                 SELECT
+                     DATE_SUB(CURDATE(), INTERVAL (t4.i*1000 + t3.i*100 + t2.i*10 + t1.i) DAY) AS date
+                 FROM
+                     (SELECT 0 AS i UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) t1,
+                     (SELECT 0 AS i UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) t2,
+                     (SELECT 0 AS i UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) t3,
+                     (SELECT 0 AS i UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) t4
+                 WHERE
+                     (t4.i*1000 + t3.i*100 + t2.i*10 + t1.i) <![CDATA[ <= ]]> #{days}
+                   AND DATE_SUB(CURDATE(), INTERVAL (t4.i*1000 + t3.i*100 + t2.i*10 + t1.i) DAY) >= DATE_SUB(CURDATE(), INTERVAL #{days} DAY)
+             ) date_range
+                 LEFT JOIN (
+            SELECT
+                DATE(created_at) AS date,
+                COUNT(*) AS count
+            FROM user
+            WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL #{days} DAY)
+            GROUP BY DATE(created_at)
+        ) user_counts ON date_range.date = user_counts.date
+        ORDER BY date_range.date ASC
+    </select>
+
 </mapper>

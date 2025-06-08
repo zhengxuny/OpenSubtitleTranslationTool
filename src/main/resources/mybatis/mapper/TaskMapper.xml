@@ -153,4 +153,36 @@
         LIMIT #{limit}
     </select>
 
+   <!-- 统计每日新增任务数量 -->
+<select id="countDailyNewTasks" resultType="map">
+    SELECT
+        DATE_FORMAT(date_range.date, '%Y-%m-%d') AS date,
+        IFNULL(task_counts.count, 0) AS count
+    FROM (
+        SELECT
+            DATE_SUB(CURDATE(), INTERVAL day_offset DAY) AS date,
+            day_offset
+        FROM (
+            SELECT (t4.i*1000 + t3.i*100 + t2.i*10 + t1.i) AS day_offset
+            FROM
+                (SELECT 0 AS i UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) t1,
+                (SELECT 0 AS i UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) t2,
+                (SELECT 0 AS i UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) t3,
+                (SELECT 0 AS i UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) t4
+            WHERE
+                <![CDATA[ (t4.i*1000 + t3.i*100 + t2.i*10 + t1.i) <= #{days} ]]>
+        ) offsets
+        WHERE <![CDATA[ DATE_SUB(CURDATE(), INTERVAL day_offset DAY) >= DATE_SUB(CURDATE(), INTERVAL #{days} DAY) ]]>
+    ) date_range
+    LEFT JOIN (
+        SELECT
+            DATE(created_at) AS date,
+            COUNT(*) AS count
+        FROM task
+        WHERE <![CDATA[ created_at >= DATE_SUB(CURDATE(), INTERVAL #{days} DAY) ]]>
+        GROUP BY DATE(created_at)
+    ) task_counts ON date_range.date = task_counts.date
+    ORDER BY date_range.date
+</select>
+
 </mapper>

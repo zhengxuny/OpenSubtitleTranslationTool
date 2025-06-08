@@ -1,6 +1,7 @@
 package com.niit.subtitletranslationtool.mapper;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -73,4 +74,11 @@ public interface TaskMapper {
      * @return 最近创建的任务列表；无记录时返回空列表
      */
     List<Task> findRecentTasks(int limit);
+
+    /**
+     * 统计每日新增任务数量（过去N天）
+     * @param days 需要获取的天数
+     * @return 以日期为键，任务数量为值的Map列表
+     */
+    List<Map<String, Object>> countDailyNewTasks(@Param("days") int days);
 }
