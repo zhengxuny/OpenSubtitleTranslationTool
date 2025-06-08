@@ -6,20 +6,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- 1. 引入共享主题CSS -->
+    <link rel="stylesheet" th:href="@{/static/css/theme.css}">
     <link rel="stylesheet" th:href="@{/static/css/global.css}">
+    <style>
+        /* --- Page-Specific Styles for Translator --- */
+
+        /* 重用上传页面的半透明卡片样式 */
+        .card.card-translucent {
+            background-color: rgba(255, 255, 255, 0);
+            border: none;
+            box-shadow: none !important;
+            border-radius: 8px;
+        }
+        .card.card-translucent .card-body {
+            background-color: transparent;
+            color: #f0f0f0;
+        }
+
+        /* 样式化文本输入框 */
+        .form-control {
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+        }
+        .form-control:focus {
+            background-color: rgba(0, 0, 0, 0.4);
+            border-color: #a0d8ff;
+            color: #ffffff;
+            box-shadow: 0 0 0 0.25rem rgba(160, 216, 255, 0.25);
+        }
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* 样式化翻译结果区域 */
+        #translationResultOutput {
+            background-color: rgba(0, 0, 0, 0); /* 使用稍浅的背景以作区分 */
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #f0f0f0;
+        }
+
+        /* 错误提示的样式 */
+        #translationResultOutput.alert-danger {
+            background-color: rgba(220, 53, 69, 0.3);
+            border-color: rgba(220, 53, 69, 0.5);
+            color: #f8aeae;
+        }
+    </style>
 </head>
 <body>
+<!-- 2. 添加视频背景 -->
+<video class="video-background" th:src="@{/static/video/ingame.mp4}" loop muted autoplay preload="auto"></video>
+
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<div class="container mt-4">
-    <h1 class="mb-4"> </h1>
-    <div class="card">
+<!-- 3. 为 container 添加 themed-container 类 -->
+<div class="container themed-container mt-4">
+    <h1 class="mb-4">高级 AI 翻译器</h1>
+
+    <!-- 4. 为 card 添加 card-translucent 类 -->
+    <div class="card card-translucent">
         <div class="card-body">
             <div class="mb-3">
                 <textarea id="inputText" class="form-control" rows="5" placeholder="在此输入要翻译的文本..."></textarea>
             </div>
             <div class="d-flex align-items-center mb-3">
-                <button id="translateButton" onclick="startTranslation()" class="btn btn-primary">
+                <button id="translateButton" onclick="startTranslation()" class="btn btn-secondary">
                     <i class="fas fa-language"></i> 翻译
                 </button>
                 <div class="spinner-border spinner-border-sm ms-2" role="status" id="loadingSpinner" style="display: none;">
@@ -27,8 +80,9 @@
                 </div>
             </div>
 
-            <h3 class="mt-4">最终翻译结果:</h3>
-            <div id="translationResultOutput" class="p-3 bg-light border rounded" style="min-height: 100px; white-space: pre-wrap;"></div>
+            <h3 class="mt-4" style="color: #fff; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">最终翻译结果:</h3>
+            <!-- 5. 移除原有的 bg-light 和 border 类，样式将由CSS控制 -->
+            <div id="translationResultOutput" class="p-3 rounded" style="min-height: 100px; white-space: pre-wrap;"></div>
         </div>
     </div>
 </div>
@@ -36,6 +90,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 <script>
+    // JavaScript代码无需任何修改，可以保持原样
     const inputText = document.getElementById('inputText');
     const translateButton = document.getElementById('translateButton');
     const translationResultOutput = document.getElementById('translationResultOutput');
@@ -49,11 +104,10 @@
         }
 
         translationResultOutput.textContent = '';
-        translationResultOutput.classList.remove('alert', 'alert-danger', 'alert-success');
+        translationResultOutput.classList.remove('alert', 'alert-danger'); // 简化，只移除这两个
         translateButton.disabled = true;
         loadingSpinner.style.display = 'inline-block';
 
-        // 核心修改在这里：添加 ?text=
         fetch(`/api/simpletranslate?text=${encodeURIComponent(textToTranslate)}`)
             .then(response => {
                 if (!response.ok) throw new Error(`翻译请求失败 (状态 ${response.status})`);
@@ -64,7 +118,7 @@
             })
             .catch(error => {
                 translationResultOutput.textContent = `翻译失败: ${error.message}`;
-                translationResultOutput.classList.add('alert', 'alert-danger');
+                translationResultOutput.classList.add('alert', 'alert-danger'); // 错误时添加样式
             })
             .finally(() => {
                 translateButton.disabled = false;
