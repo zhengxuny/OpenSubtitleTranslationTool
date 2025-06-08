@@ -1,12 +1,61 @@
 /* static/css/global.css */
+
+/*
+  1. 为body设置一个深色背景，适配整体风格。
+     这在没有视频背景的页面（如登录页）上尤其重要。
+  2. 保留padding-top，以防止内容被fixed-top的导航栏遮挡。
+*/
 body {
-    padding-top: 70px; /* Adjust based on your navbar's actual height */
-    background-color: #f8f9fa; /* A light Bootstrap-like background */
+    padding-top: 70px; /* 根据导航栏实际高度微调 */
+    background-color: #1a1a1d; /* 使用一个深灰色作为全局背景 */
+    color: #f0f0f0; /* 设置默认文字颜色为浅灰色，提高可读性 */
 }
 
-/* Optional: consistent container styling if not using Bootstrap's full-width fluid containers everywhere */
+/*
+  为导航栏添加毛玻璃效果的核心样式
+*/
+.navbar-translucent {
+    /* 1. 设置半透明背景 */
+    background-color: rgba(0, 0, 0, 0.3);
+
+    /* 2. 应用毛玻璃模糊效果 */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px); /* 兼容 Safari */
+
+    /* 3. 添加一个微妙的底部边框，将其与下方内容分开 */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/*
+  优化导航栏链接和文本的可读性与美观度
+*/
+.navbar-translucent .nav-link,
+.navbar-translucent .navbar-brand,
+.navbar-translucent .navbar-text {
+    color: rgba(255, 255, 255, 0.85); /* 设置默认颜色为半透明白色 */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5); /* 添加文字阴影，增强可读性 */
+    transition: color 0.2s ease-in-out;
+}
+
+/* 导航链接悬停和激活状态 */
+.navbar-translucent .nav-link:hover,
+.navbar-translucent .nav-link:focus,
+.navbar-translucent .nav-link.active {
+    color: #ffffff; /* 悬停/激活时变为纯白 */
+}
+
+.navbar-translucent .navbar-brand:hover {
+    color: #ffffff;
+}
+
+/* Toggler按钮在小屏幕上的边框颜色优化 */
+.navbar-translucent .navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 之前为表格设计的样式，这里保留，确保其正常工作 */
 .main-content-container {
-    max-width: 1200px; /* Or your preferred max-width */
+    max-width: 1200px;
     margin-left: auto;
     margin-right: auto;
     padding: 1rem;

@@ -1,0 +1,46 @@
+/* --- Global Theme Styles --- */
+
+/* 设置一个基础文字颜色，以防某些元素未被覆盖 */
+body {
+    color: #f0f0f0;
+}
+
+/* 视频背景 */
+.video-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    min-width: 100%;
+    min-height: 100%;
+    z-index: -1;
+    object-fit: cover;
+    filter: brightness(0.95); /* 调暗背景，突出前景内容 */
+}
+
+/* 主内容容器的毛玻璃效果 */
+.container.themed-container {
+    background-color: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 2rem;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    /* 覆盖Bootstrap默认的padding，确保我们自定义的padding生效 */
+    --bs-gutter-x: 1.5rem;
+}
+
+/* 标题样式，增加文字阴影以提高可读性 */
+h1, h2, h1 span, h2 span {
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+/* 通用链接样式 */
+a {
+    color: #a0d8ff;
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+}
+a:hover {
+    color: #ffffff;
+}

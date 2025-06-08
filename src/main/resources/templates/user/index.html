@@ -6,12 +6,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- 引入共享主题CSS -->
+    <link rel="stylesheet" th:href="@{/static/css/theme.css}">
+    <!-- 引入全局CSS (如果还有其他全局样式) -->
     <link rel="stylesheet" th:href="@{/static/css/global.css}">
+    <style>
+        /* --- Page-Specific Styles for Video List Table --- */
+
+        .table-translucent {
+            --bs-table-bg: transparent;
+            --bs-table-striped-bg: rgba(255, 255, 255, 0.05);
+            --bs-table-hover-bg: rgba(255, 255, 255, 0.1);
+            --bs-table-color: #f0f0f0;
+            --bs-table-border-color: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .table-translucent thead.table-light {
+            --bs-table-bg: rgba(255, 255, 255, 0.1);
+            --bs-table-color: #ffffff;
+        }
+
+        .table-translucent th {
+            font-weight: 600;
+        }
+
+        /* 链接颜色已由 theme.css 中的 a 标签全局定义，如果需要特殊颜色可在此处覆盖 */
+        /* .table-translucent a { color: #a0d8ff; } */
+
+        .table-translucent .text-success { color: #4ade80 !important; }
+        .table-translucent .text-danger { color: #f87171 !important; }
+        .table-translucent .text-muted { color: rgba(255, 255, 255, 0.6) !important; }
+
+        .alert-info {
+            background-color: rgba(23, 162, 184, 0.2);
+            border-color: rgba(23, 162, 184, 0.4);
+            color: #ffffff;
+        }
+        .alert-info .alert-link {
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
+<!-- 添加视频背景 -->
+<video class="video-background" th:src="@{/static/video/ingame.mp4}" loop muted autoplay preload="auto"></video>
+
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<div class="container mt-4">
+<!-- 为 container 添加 themed-container 类 -->
+<div class="container themed-container mt-4">
     <h1 class="mb-4">欢迎，<span th:text="${username}"></span>！</h1>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -25,7 +70,8 @@
     </div>
 
     <div class="table-responsive" th:if="${!tasks.empty}">
-        <table class="table table-striped table-hover">
+        <table class="table table-striped table-hover table-translucent">
+            <!-- 表格内容保持不变 -->
             <thead class="table-light">
             <tr>
                 <th>原文件名</th>
