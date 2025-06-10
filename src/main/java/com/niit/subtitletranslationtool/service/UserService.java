@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -67,42 +68,35 @@ public class UserService implements UserDetailsService {
     }
 
     /**
-     * 根据用户名加载用户信息，用于 Spring Security 认证流程。
-     *
-     * @param username 用户名
-     * @return 用户认证信息对象
-     * @throws UsernameNotFoundException 用户不存在时抛出
-     */
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userMapper.findByUsername(username);
-        if (user == null) {
-            throw new UsernameNotFoundException("用户未找到: " + username);
-        }
+ * 根据用户名加载用户信息，用于 Spring Security 认证流程。
+ *
+ * @param username 用户名
+ * @return 用户认证信息对象
+ * @throws UsernameNotFoundException 用户不存在时抛出
+ */
+@Override
+public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    System.out.println("Querying user with username: " + username);
 
-        return new org.springframework.security.core.userdetails.User(
-                user.getUsername(),
-                user.getPassword(),
-                Collections.emptyList()
-        );
-    }
+    User user = userMapper.findByUsername(username);
 
-    /**
-     * 用户登录认证。
-     *
-     * @param username    用户名
-     * @param rawPassword 原始密码
-     * @return 认证成功的用户实体
-     * @throws RuntimeException 用户不存在或密码错误时抛出
-     */
-    public User authenticateUser(String username, String rawPassword) {
-        User user = userMapper.findByUsername(username);
-        if (user == null || !passwordEncoder.matches(rawPassword, user.getPassword())) {
-            throw new RuntimeException("用户名或密码不正确");
-        }
+//    if (user == null) {
+//        System.out.println("User not found for username: " + username);
+//        throw new UsernameNotFoundException("用户未找到: " + username);
+//    }
 
-        return user;
-    }
+    //调用Assert(user == null, "用户未找到: " + username)
+    Assert.notNull(user, "用户未找到: " + username);
+
+    System.out.println("User found: " + user);
+
+    return new org.springframework.security.core.userdetails.User(
+            user.getUsername(),
+            user.getPassword(),
+            Collections.emptyList()
+    );
+}
+
 
     /**
      * 用户余额充值。

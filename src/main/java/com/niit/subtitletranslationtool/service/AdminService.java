@@ -4,12 +4,10 @@ import com.niit.subtitletranslationtool.entity.Admin;
 import com.niit.subtitletranslationtool.mapper.AdminMapper;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.util.Collections;
 
 /**
@@ -17,7 +15,7 @@ import java.util.Collections;
  * 通过数据库查询管理员信息，提供认证所需的用户详情。
  */
 @Service
-public class AdminService implements UserDetailsService {
+public class AdminService implements AdminDetailsService {
 
     private final AdminMapper adminMapper;
 
@@ -72,6 +70,7 @@ public class AdminService implements UserDetailsService {
      * @param rawPassword 用户输入的明文密码
      * @return 匹配返回true，不匹配返回false
      */
+    @Override
     public boolean verifyPassword(Admin admin, String rawPassword) {
         return passwordEncoder.matches(rawPassword, admin.getPassword());
     }

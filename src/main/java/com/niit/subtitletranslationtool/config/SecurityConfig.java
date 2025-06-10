@@ -17,226 +17,170 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-import com.niit.subtitletranslationtool.service.AdminService;
+import com.niit.subtitletranslationtool.service.AdminService; // 注意：这里虽然引入了AdminService，但并没有实际使用，可能需要检查和调整。
+import com.niit.subtitletranslationtool.service.AdminDetailsService;
+import com.niit.subtitletranslationtool.service.UserService; // 注意：这里虽然引入了UserService，但并没有实际使用，可能需要检查和调整。
 import com.niit.subtitletranslationtool.config.CustomAuthenticationFailureHandler;
 import com.niit.subtitletranslationtool.config.CustomAuthenticationSuccessHandler;
 
-/**
- * Spring Security 配置类，负责定义用户和管理员两套安全过滤链及认证管理器。
- * 支持基于表单的登录认证、密码加密、权限控制以及登录登出成功/失败处理。
- */
 @Configuration
-@EnableWebSecurity
+@EnableWebSecurity // 启用 Spring Security 的 Web 安全特性
 public class SecurityConfig {
 
+    // 用户服务，用于从数据库或其他来源加载用户信息的接口
     private final UserDetailsService userDetailsService;
 
-    private final AdminService adminService;
+    // 管理员服务，用于从数据库或其他来源加载管理员信息的接口
+    private final AdminDetailsService adminDetailsService;
 
+    // 自定义成功处理程序，用于处理用户登录成功的情况，例如重定向到特定页面或返回自定义响应
     private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
 
+    // 自定义失败处理程序，用于处理用户登录失败的情况，例如返回错误信息或显示错误页面
     private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
 
+    // 密码编码器，用于密码加密和解密，确保密码安全存储
     private final PasswordEncoder passwordEncoder;
 
-    /**
-     * 使用构造函数注入用户和管理员认证服务、自定义成功失败处理器，以及密码编码器。
-     *
-     * @param userDetailsService              普通用户认证服务
-     * @param adminService                   管理员认证服务
-     * @param customAuthenticationSuccessHandler 自定义登录成功处理器
-     * @param customAuthenticationFailureHandler 自定义登录失败处理器
-     * @param passwordEncoder               密码编码器
-     */
-    public SecurityConfig(@Qualifier("userService") UserDetailsService userDetailsService,
-                          AdminService adminService,
+    // 构造函数，通过依赖注入初始化各个服务和处理程序
+    public SecurityConfig(@Qualifier("userService") UserDetailsService userDetailsService, // 使用 @Qualifier 指定 bean 的名称，避免歧义
+                          AdminDetailsService adminDetailsService,
                           CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler,
                           CustomAuthenticationFailureHandler customAuthenticationFailureHandler,
                           PasswordEncoder passwordEncoder) {
         this.userDetailsService = userDetailsService;
-        this.adminService = adminService;
+        this.adminDetailsService = adminDetailsService;
         this.customAuthenticationSuccessHandler = customAuthenticationSuccessHandler;
         this.customAuthenticationFailureHandler = customAuthenticationFailureHandler;
         this.passwordEncoder = passwordEncoder;
     }
 
-    /**
-     * 提供 BCrypt 算法的密码编码器 Bean，用于统一密码加密和校验。
-     *
-     * @return 使用 BCrypt 的密码编码器实例
-     */
+    // 配置BCryptPasswordEncoder作为密码编码器，使用 BCrypt 算法进行密码加密
     @Bean
     public static PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * 配置普通用户认证管理器，基于自定义的UserDetailsService和密码编码器进行认证。
-     *
-     * @param http HttpSecurity对象，用于获取共享的AuthenticationManagerBuilder
-     * @return 认证管理器实例
-     * @throws Exception 可能抛出配置异常
-     */
+    // 配置用户认证管理器，负责验证用户提供的身份信息（用户名和密码）
     @Bean
-    @Primary
+    @Primary // 设置为主要的 AuthenticationManager，当有多个 AuthenticationManager 时，优先使用该 Bean
     public AuthenticationManager userAuthenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authenticationManagerBuilder =
-                http.getSharedObject(AuthenticationManagerBuilder.class);
+                http.getSharedObject(AuthenticationManagerBuilder.class); // 获取 AuthenticationManagerBuilder 的实例
 
-        // 使用普通用户的UserDetailsService和密码编码器
-        authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
-        return authenticationManagerBuilder.build();
+        authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder); // 配置 UserDetailsService 和 PasswordEncoder
+        return authenticationManagerBuilder.build(); // 构建 AuthenticationManager
     }
 
-    /**
-     * 配置管理员认证管理器，使用AdminService及密码编码器进行管理员身份认证。
-     *
-     * @param http HttpSecurity对象，用于获取共享的AuthenticationManagerBuilder
-     * @return 管理员认证管理器实例
-     * @throws Exception 可能抛出配置异常
-     */
+    // 配置管理员认证管理器
     @Bean
     public AuthenticationManager adminAuthenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authenticationManagerBuilder =
                 http.getSharedObject(AuthenticationManagerBuilder.class);
 
-        // 使用管理员的UserDetailsService和密码编码器
-        authenticationManagerBuilder.userDetailsService(adminService).passwordEncoder(passwordEncoder);
+        authenticationManagerBuilder.userDetailsService(adminDetailsService).passwordEncoder(passwordEncoder);
         return authenticationManagerBuilder.build();
     }
 
-    /**
-     * 定义普通用户的安全过滤链，匹配除了/admin路径之外的所有请求。
-     * 配置用户认证、登录、登出及路径访问权限。
-     *
-     * @param http HttpSecurity对象，用于配置HTTP安全策略
-     * @return 构建好的安全过滤链实例
-     * @throws Exception 配置异常
-     */
+    // 配置用户安全过滤链，定义用户相关请求的安全策略
     @Bean
-    @Order(2)
+    @Order(2) // 设置过滤链的优先级，数值越小优先级越高。用户过滤链优先级较低，先经过管理员过滤链
     public SecurityFilterChain userFilterChain(HttpSecurity http) throws Exception {
         http
-                // 仅匹配非/admin开头的请求路径
-                .securityMatcher(security -> !security.getRequestURI().startsWith("/admin/"))
+                .securityMatcher(security -> !security.getRequestURI().startsWith("/admin/")) // 定义此过滤器链匹配的请求路径模式，这里是排除以 /admin/ 开头的请求
 
-                // 禁用CSRF保护，通常API接口使用token或其他防护机制
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable) // 禁用 CSRF 保护，在 API 应用中通常不需要 CSRF 保护
 
                 .sessionManagement(session -> session
-                        // 根据需求决定是否创建会话
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // 设置会话创建策略，如果需要就创建
                 )
 
-                // 配置路径访问权限，部分路径允许匿名访问，部分需要认证
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/topup", "/api/auth/topup").authenticated()
-                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                        .requestMatchers("/register", "/login").permitAll()
-                        .requestMatchers("static/**").permitAll()
-                        .requestMatchers("/api/**").authenticated()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/topup", "/api/auth/topup").authenticated() // /topup 和 /api/auth/topup 需要认证才能访问
+                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll() // /api/auth/register 和 /api/auth/login 允许所有人访问
+                        .requestMatchers("/register", "/login").permitAll() // /register 和 /login 允许所有人访问
+                        .requestMatchers("static/**").permitAll() // 允许所有人访问静态资源
+                        .requestMatchers("/api/**").authenticated() // /api/** 下的任何请求都需要认证
+                        .anyRequest().authenticated() // 其他任何请求都需要认证
                 )
 
-                // 配置基于表单的登录接口与成功/失败处理
                 .formLogin(form -> form
-                        .loginPage("/login")
-                        .loginProcessingUrl("/api/auth/login")
-                        .usernameParameter("username")
-                        .passwordParameter("password")
-                        .successHandler(customAuthenticationSuccessHandler)
-                        .failureHandler(customAuthenticationFailureHandler)
+                        .loginPage("/login") // 设置登录页面 URL
+                        .loginProcessingUrl("/api/auth/login") // 设置登录请求处理 URL
+                        .usernameParameter("username") // 设置用户名参数名
+                        .passwordParameter("password") // 设置密码参数名
+                        .successHandler(customAuthenticationSuccessHandler) // 设置登录成功处理程序
+                        .failureHandler(customAuthenticationFailureHandler) // 设置登录失败处理程序
                 )
 
-                // 配置登出接口和登出成功时返回的自定义响应
                 .logout(logout -> logout
-                        .logoutUrl("/api/auth/logout")
-                        .logoutSuccessHandler((request, response, authentication) -> {
-                            response.setStatus(200);
-                            response.getWriter().write("{\"message\":\"登出成功\"}");
+                        .logoutUrl("/api/auth/logout") // 设置登出 URL
+                        .logoutSuccessHandler((request, response, authentication) -> { // 设置登出成功处理程序
+                            response.setStatus(200); // 设置 HTTP 状态码为 200
+                            response.getWriter().write("{\"message\":\"登出成功\"}"); // 返回 JSON 格式的成功消息
                         })
-                        .permitAll()
+                        .permitAll() // 允许所有人访问登出 URL
                 );
 
-        return http.build();
-
-
+        return http.build(); // 构建 SecurityFilterChain
     }
 
-    /**
-     * 定义管理员的安全过滤链，专门匹配/admin开头路径的请求，使用管理员认证管理器。
-     * 配置管理员登录登出、权限控制及静态资源访问。
-     *
-     * @param http HttpSecurity对象，用于配置HTTP安全策略
-     * @param adminAuthenticationManager 管理员认证管理器，确保使用AdminService进行认证
-     * @return 构建好的管理员安全过滤链实例
-     * @throws Exception 配置异常
-     */
+    // 配置管理员安全过滤链，定义管理员相关请求的安全策略
     @Bean
-    @Order(1)
+    @Order(1) // 设置过滤链的优先级，数值越小优先级越高。管理员过滤链优先级较高，先进行匹配
     public SecurityFilterChain adminFilterChain(
             HttpSecurity http,
-            @Qualifier("adminAuthenticationManager") AuthenticationManager adminAuthenticationManager
+            @Qualifier("adminAuthenticationManager") AuthenticationManager adminAuthenticationManager // 使用 @Qualifier 指定要注入的 AuthenticationManager Bean
     ) throws Exception {
         http
-                // 仅匹配/admin/**路径
-                .securityMatcher("/admin/**")
+                .securityMatcher("/admin/**") // 定义此过滤器链匹配的请求路径模式，这里是以 /admin/ 开头的请求
 
-                // 显式指定管理员认证管理器，确保用户来源正确
-                .authenticationManager(adminAuthenticationManager)
+                .authenticationManager(adminAuthenticationManager) // 设置使用的 AuthenticationManager
 
-                // 禁用CSRF，管理员接口建议配合其他机制保护
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable) // 禁用 CSRF 保护
 
                 .sessionManagement(session -> session
-                        // 总是创建会话，方便管理员管理登录状态
-                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
-                        // 限制单设备登录，防止多次重复登录（可选）
-                        .maximumSessions(1)
+                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS) // 设置会话创建策略，总是创建会话
+                        .maximumSessions(1) // 限制每个用户只能有一个会话
                 )
 
-                // 配置管理员路径的权限，开放部分静态资源和登录页面
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("static/**", "/assets/**", "/css/**", "/js/**", "/img/**").permitAll()
-                        .requestMatchers("/admin/login").permitAll()
-                        .requestMatchers("/admin/auth/login").permitAll()
-                        .anyRequest().hasRole("ADMIN")
+                        .requestMatchers("static/**", "/assets/**", "/css/**", "/js/**", "/img/**").permitAll() // 允许所有人访问静态资源
+                        .requestMatchers("/admin/login").permitAll() // 允许所有人访问管理员登录页面
+                        .requestMatchers("/admin/auth/login").permitAll() // 允许所有人访问管理员登录处理 URL
+                        .anyRequest().hasRole("ADMIN") // 其他任何请求都需要 ADMIN 角色才能访问
                 )
 
-                // 管理员登录页面及登录处理配置
                 .formLogin(form -> form
-                        .loginPage("/admin/login")
-                        .loginProcessingUrl("/admin/auth/login")
-                        .usernameParameter("username")
-                        .passwordParameter("password")
+                        .loginPage("/admin/login") // 设置管理员登录页面 URL
+                        .loginProcessingUrl("/admin/auth/login") // 设置管理员登录请求处理 URL
+                        .usernameParameter("username") // 设置用户名参数名
+                        .passwordParameter("password") // 设置密码参数名
 
-                        // 登录成功时返回JSON格式的响应，包含登录用户名
-                        .successHandler((request, response, auth) -> {
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            response.setContentType("application/json;charset=UTF-8");
+                        .successHandler((request, response, auth) -> { // 设置管理员登录成功处理程序
+                            response.setStatus(HttpServletResponse.SC_OK); // 设置 HTTP 状态码为 200
+                            response.setContentType("application/json;charset=UTF-8"); // 设置响应内容类型为 JSON
                             response.getWriter().write("{\"success\":true, \"message\":\"管理员登录成功\", \"username\":\""
-                                                      + auth.getName() + "\"}");
+                                                      + auth.getName() + "\"}"); // 返回 JSON 格式的成功消息，包含用户名
                         })
 
-                        // 登录失败时返回JSON格式的错误信息
-                        .failureHandler((request, response, ex) -> {
-                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                            response.setContentType("application/json;charset=UTF-8");
-                            response.getWriter().write("{\"success\":false, \"message\":\"" + ex.getMessage() + "\"}");
+                        .failureHandler((request, response, ex) -> { // 设置管理员登录失败处理程序
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 设置 HTTP 状态码为 401 (Unauthorized)
+                            response.setContentType("application/json;charset=UTF-8"); // 设置响应内容类型为 JSON
+                            response.getWriter().write("{\"success\":false, \"message\":\"" + ex.getMessage() + "\"}"); // 返回 JSON 格式的错误消息，包含异常信息
                         })
                 )
 
-                // 管理员登出接口与登出成功处理，返回JSON响应
                 .logout(logout -> logout
-                        .logoutUrl("/admin/auth/logout")
-                        .logoutSuccessHandler((request, response, auth) -> {
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            response.setContentType("application/json;charset=UTF-8");
-                            response.getWriter().write("{\"success\":true, \"message\":\"管理员登出成功\"}");
+                        .logoutUrl("/admin/auth/logout") // 设置管理员登出 URL
+                        .logoutSuccessHandler((request, response, auth) -> { // 设置管理员登出成功处理程序
+                            response.setStatus(HttpServletResponse.SC_OK); // 设置 HTTP 状态码为 200
+                            response.setContentType("application/json;charset=UTF-8"); // 设置响应内容类型为 JSON
+                            response.getWriter().write("{\"success\":true, \"message\":\"管理员登出成功\"}"); // 返回 JSON 格式的成功消息
                         })
-                        .permitAll()
+                        .permitAll() // 允许所有人访问管理员登出 URL
                 );
 
-        return http.build();
+        return http.build(); // 构建 SecurityFilterChain
     }
 }
