@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -21,6 +23,7 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
 
     // 用于JSON数据与Java对象的序列化和反序列化
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final Logger log = LoggerFactory.getLogger(CustomAuthenticationFailureHandler.class); // 新增日志
 
     /**
      * 处理身份验证失败的请求，返回自定义JSON错误响应。
@@ -34,17 +37,18 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
      */
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
-        // 设置HTTP响应状态码为401（未授权）
+        try {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        // 设置响应内容类型为JSON，字符集为UTF-8
         response.setContentType("application/json;charset=UTF-8");
 
-        // 创建错误信息容器，用于存储返回的错误内容
         Map<String, String> data = new HashMap<>();
-        // 将异常信息封装到消息字段中，提示登录失败原因
         data.put("message", "登录失败: " + exception.getMessage());
 
-        // 将错误信息容器序列化为JSON，并写入响应输出流
         objectMapper.writeValue(response.getWriter(), data);
+        } catch (Exception e) {
+            log.error("处理认证失败响应时发生异常", e); // 记录异常日志
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("{\"message\":\"服务器处理登录失败时发生异常\"}");
     }
+}
 }

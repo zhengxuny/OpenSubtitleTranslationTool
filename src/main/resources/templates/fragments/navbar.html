@@ -28,14 +28,12 @@
                 </li>
             </ul>
             <div class="navbar-text d-flex align-items-center">
-                <span class="me-3">你好, <span th:text="${#authentication?.name ?: '访客'}">用户</span>!</span>
+                <span class="me-3">你好, <span th:text="${username}">用户</span>!</span>
                 <!-- Assume balance is available in session or model attribute 'userBalance' -->
                 <span class="me-3">余额: ¥<span th:text="${userBalance != null ? #numbers.formatDecimal(userBalance, 1, 2) : '0.00'}">0.00</span></span>
-                <a th:if="${#authentication?.name != null}" th:href="@{/logout}" class="btn btn-outline-light btn-sm">
+
+                <a th:href="@{/logout}" class="btn btn-outline-light btn-sm">
                     <i class="fas fa-sign-out-alt"></i> 登出
-                </a>
-                <a th:if="${#authentication?.name == null}" th:href="@{/login}" class="btn btn-outline-light btn-sm">
-                    <i class="fas fa-sign-in-alt"></i> 登录
                 </a>
             </div>
         </div>
