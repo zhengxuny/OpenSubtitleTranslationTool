@@ -286,7 +286,7 @@
                         clearInterval(interval);
                     }
                 }).fail(function() {
-                    // Handle polling error (e.g., network issue, server down)
+                    // Handle polling 404.html (e.g., network issue, server down)
                     console.error("Polling failed for task " + taskId);
                     // Optionally, inform the user or stop polling after several failures
                 });

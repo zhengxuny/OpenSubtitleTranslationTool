@@ -15,6 +15,7 @@ import org.springframework.util.Assert;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * 用户服务实现类，处理用户注册、认证、余额管理等业务逻辑。
@@ -68,34 +69,31 @@ public class UserService implements UserDetailsService {
     }
 
     /**
- * 根据用户名加载用户信息，用于 Spring Security 认证流程。
- *
- * @param username 用户名
- * @return 用户认证信息对象
- * @throws UsernameNotFoundException 用户不存在时抛出
- */
-@Override
-public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    System.out.println("Querying user with username: " + username);
+     * 根据用户名加载用户信息，用于 Spring Security 认证流程。
+     *
+     * @param username 用户名
+     * @return 用户认证信息对象
+     * @throws UsernameNotFoundException 用户不存在时抛出
+     */
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        System.out.println("[认证流程] 开始查询用户，用户名: " + username);
 
-    User user = userMapper.findByUsername(username);
-
-//    if (user == null) {
-//        System.out.println("User not found for username: " + username);
-//        throw new UsernameNotFoundException("用户未找到: " + username);
-//    }
-
-    //调用Assert(user == null, "用户未找到: " + username)
-    Assert.notNull(user, "用户未找到: " + username);
-
-    System.out.println("User found: " + user);
-
-    return new org.springframework.security.core.userdetails.User(
-            user.getUsername(),
-            user.getPassword(),
-            Collections.emptyList()
-    );
-}
+        // 使用 Optional 来处理可能为 null 的结果，这是一种更现代的 Java 风格
+        return Optional.ofNullable(userMapper.findByUsername(username))
+                .map(user -> {
+                    System.out.println("[认证流程] 用户查询成功，用户名: " + user.getUsername());
+                    return new org.springframework.security.core.userdetails.User(
+                            user.getUsername(),
+                            user.getPassword(),
+                            Collections.emptyList() // 或者用户实际的权限列表
+                    );
+                })
+                .orElseThrow(() -> {
+                    System.out.println("[认证流程] 用户未找到，用户名: " + username);
+                    return new UsernameNotFoundException("User not found with username: " + username);
+                });
+    }
 
 
     /**

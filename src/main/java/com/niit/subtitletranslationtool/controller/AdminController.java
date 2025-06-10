@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -205,12 +207,28 @@ public class AdminController {
         List<Map<String, Object>> dailyNewUsers = userMapper.countDailyNewUsers(7);
         model.addAttribute("dailyNewUsers", dailyNewUsers);
 
-
         // 获取最近7天新增任务数据（新增）
         List<Map<String, Object>> dailyNewTasks = taskMapper.countDailyNewTasks(7);
         model.addAttribute("dailyNewTasks", dailyNewTasks);
 
+        // 获取当前管理员的用户名
+        String adminName = getAdminName();
+        model.addAttribute("adminName", adminName);
+
         return "admin/adminindex";
     }
 
+    /**
+     * 获取当前管理员的用户名。
+     *
+     * @return 当前管理员的用户名
+     */
+    private String getAdminName() {
+        SecurityContext context = SecurityContextHolder.getContext();
+        Authentication authentication = context.getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            return authentication.getName();
+        }
+        return "管理员";
+    }
 }

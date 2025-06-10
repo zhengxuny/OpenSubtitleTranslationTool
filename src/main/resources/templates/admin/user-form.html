@@ -12,7 +12,7 @@
 <body>
 <div th:replace="~{fragments/admin-navbar :: admin-navbar}"></div>
 
-<div class="container mt-4">
+<div class="container mt-4" style="padding-top: 60px;"> <!-- 添加内边距 -->
     <h1 class="mb-4" th:text="${user.id == null ? '新增用户' : '编辑用户'}"></h1>
 
     <form th:action="@{/admin/users/save}" method="post" class="row g-3">
