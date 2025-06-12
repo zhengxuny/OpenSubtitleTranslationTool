@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!--
     TaskMapper.xml
@@ -16,30 +16,48 @@
         <!-- id：指定主键字段的映射 -->
         <id property="id" column="id"/>
         <!-- result：指定普通字段的映射 -->
-        <result property="originalVideoFilename" column="original_video_filename"/> <!-- 原始视频文件名 -->
-        <result property="storedVideoFilename" column="stored_video_filename"/>       <!-- 存储的视频文件名 -->
-        <result property="videoFilePath" column="video_file_path"/>                 <!-- 视频文件路径 -->
-        <result property="extractedAudioFilename" column="extracted_audio_filename"/>   <!-- 提取的音频文件名 -->
-        <result property="extractedAudioFilePath" column="extracted_audio_file_path"/> <!-- 提取的音频文件路径 -->
-        <result property="originalSrtFilename" column="original_srt_filename"/>       <!-- 原始SRT字幕文件名 -->
-        <result property="originalSrtFilePath" column="original_srt_file_path"/>     <!-- 原始SRT字幕文件路径 -->
-        <result property="translatedSrtFilename" column="translated_srt_filename"/>   <!-- 翻译后的SRT字幕文件名 -->
-        <result property="translatedSrtFilePath" column="translated_srt_file_path"/> <!-- 翻译后的SRT字幕文件路径 -->
-        <result property="subtitledVideoFilename" column="subtitled_video_filename"/>   <!-- 合成字幕后的视频文件名 -->
-        <result property="subtitledVideoFilePath" column="subtitled_video_file_path"/> <!-- 合成字幕后的视频文件路径 -->
-        <result property="burnSubtitles" column="burn_subtitles"/>                   <!-- 是否硬字幕 -->
+        <result property="originalVideoFilename" column="original_video_filename"/>
+        <!-- 原始视频文件名 -->
+        <result property="storedVideoFilename" column="stored_video_filename"/>
+        <!-- 存储的视频文件名 -->
+        <result property="videoFilePath" column="video_file_path"/>
+        <!-- 视频文件路径 -->
+        <result property="extractedAudioFilename" column="extracted_audio_filename"/>
+        <!-- 提取的音频文件名 -->
+        <result property="extractedAudioFilePath" column="extracted_audio_file_path"/>
+        <!-- 提取的音频文件路径 -->
+        <result property="originalSrtFilename" column="original_srt_filename"/>
+        <!-- 原始SRT字幕文件名 -->
+        <result property="originalSrtFilePath" column="original_srt_file_path"/>
+        <!-- 原始SRT字幕文件路径 -->
+        <result property="translatedSrtFilename" column="translated_srt_filename"/>
+        <!-- 翻译后的SRT字幕文件名 -->
+        <result property="translatedSrtFilePath" column="translated_srt_file_path"/>
+        <!-- 翻译后的SRT字幕文件路径 -->
+        <result property="subtitledVideoFilename" column="subtitled_video_filename"/>
+        <!-- 合成字幕后的视频文件名 -->
+        <result property="subtitledVideoFilePath" column="subtitled_video_file_path"/>
+        <!-- 合成字幕后的视频文件路径 -->
+        <result property="burnSubtitles" column="burn_subtitles"/>
+        <!-- 是否硬字幕 -->
         <result property="userId" column="user_id"/>
+        <!-- 用户ID -->
         <!--
             status: 任务状态。
             使用EnumTypeHandler将枚举类型名称映射为数据库中的VARCHAR类型。
             EnumTypeHandler是MyBatis提供的类型处理器，用于处理枚举类型与数据库字段之间的转换。
         -->
         <result property="status" column="status" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
-        <result property="errorMessage" column="error_message"/>                   <!-- 错误信息 -->
-        <result property="detectedLanguage" column="detected_language"/>             <!-- 检测到的语言 -->
-        <result property="languageProbability" column="language_probability"/>         <!-- 语言识别概率 -->
-        <result property="createdAt" column="created_at"/>                         <!-- 创建时间 -->
-        <result property="updatedAt" column="updated_at"/>                         <!-- 更新时间 -->
+        <result property="errorMessage" column="error_message"/>
+        <!-- 错误信息 -->
+        <result property="detectedLanguage" column="detected_language"/>
+        <!-- 检测到的语言 -->
+        <result property="languageProbability" column="language_probability"/>
+        <!-- 语言识别概率 -->
+        <result property="createdAt" column="created_at"/>
+        <!-- 创建时间 -->
+        <result property="updatedAt" column="updated_at"/>
+        <!-- 更新时间 -->
     </resultMap>
 
     <!--
@@ -60,7 +78,7 @@
         created_at,
         updated_at,
         burn_subtitles,
-        user_id,  <!-- Fixed: Replaced Chinese comma with English comma -->
+        user_id,
         summary
         ) VALUES (
         #{originalVideoFilename},
@@ -70,7 +88,7 @@
         #{createdAt},
         #{updatedAt},
         #{burnSubtitles},
-        #{userId},  <!-- Added missing comma -->
+        #{userId},
         #{summary}
         )
     </insert>
@@ -81,7 +99,9 @@
         resultMap：指定查询结果集使用TaskResultMap进行映射。
     -->
     <select id="findById" resultMap="TaskResultMap">
-        SELECT * FROM task WHERE id = #{id}
+        SELECT *
+        FROM task
+        WHERE id = #{id}
     </select>
 
     <!--
@@ -91,98 +111,158 @@
     -->
     <update id="updateTask" parameterType="com.niit.subtitletranslationtool.entity.Task">
         UPDATE task
-        SET
-        original_video_filename = #{originalVideoFilename},
-        stored_video_filename = #{storedVideoFilename},
-        video_file_path = #{videoFilePath},
-        extracted_audio_filename = #{extractedAudioFilename},
-        extracted_audio_file_path = #{extractedAudioFilePath},
-        original_srt_filename = #{originalSrtFilename},
-        original_srt_file_path = #{originalSrtFilePath},
-        translated_srt_filename = #{translatedSrtFilename},
-        translated_srt_file_path = #{translatedSrtFilePath},
-        subtitled_video_filename = #{subtitledVideoFilename},
-        subtitled_video_file_path = #{subtitledVideoFilePath},
-        burn_subtitles = #{burnSubtitles},
-        <!--
-            #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler}
-            将Task对象的status属性（枚举类型）转换为数据库可以存储的字符串类型。
-            typeHandler指定了用于处理枚举类型转换的类型处理器。
-        -->
-        status = #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
-        error_message = #{errorMessage},
-        detected_language = #{detectedLanguage},
-        language_probability = #{languageProbability},
-        updated_at = #{updatedAt},
-        summary = #{summary}
-        WHERE
-        id = #{id}
+        SET original_video_filename = #{originalVideoFilename},
+            stored_video_filename = #{storedVideoFilename},
+            video_file_path = #{videoFilePath},
+            extracted_audio_filename = #{extractedAudioFilename},
+            extracted_audio_file_path = #{extractedAudioFilePath},
+            original_srt_filename = #{originalSrtFilename},
+            original_srt_file_path = #{originalSrtFilePath},
+            translated_srt_filename = #{translatedSrtFilename},
+            translated_srt_file_path = #{translatedSrtFilePath},
+            subtitled_video_filename = #{subtitledVideoFilename},
+            subtitled_video_file_path = #{subtitledVideoFilePath},
+            burn_subtitles = #{burnSubtitles},
+            <!--
+                #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler}
+                将Task对象的status属性（枚举类型）转换为数据库可以存储的字符串类型。
+                typeHandler指定了用于处理枚举类型转换的类型处理器。
+            -->
+            status = #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            error_message = #{errorMessage},
+            detected_language = #{detectedLanguage},
+            language_probability = #{languageProbability},
+            updated_at = #{updatedAt},
+            summary = #{summary}
+        WHERE id = #{id}
     </update>
 
-    <!-- Add this to the TaskMapper.xml -->
+    <!--
+        findByUserId
+        根据用户ID查询任务列表，并按照创建时间倒序排列。
+        resultMap：指定查询结果集使用TaskResultMap进行映射。
+        #{userId}：用于接收传入的用户ID参数。
+    -->
     <select id="findByUserId" resultMap="TaskResultMap">
-        SELECT * FROM task
+        SELECT *
+        FROM task
         WHERE user_id = #{userId}
         ORDER BY created_at DESC
     </select>
 
-<!--    查找全部任务，findAllTasks-->
+    <!--
+        findAllTasks
+        查找全部任务，并按照创建时间倒序排列。
+        resultMap：指定查询结果集使用TaskResultMap进行映射。
+    -->
     <select id="findAllTasks" resultMap="TaskResultMap">
-        SELECT * FROM task
+        SELECT *
+        FROM task
         ORDER BY created_at DESC
     </select>
 
-<!--    // 统计总任务数-->
-<!--    int countAllTasks();-->
+    <!--
+        countAllTasks
+        统计总任务数。
+        resultType：指定返回结果的类型为int。
+    -->
     <select id="countAllTasks" resultType="int">
-        SELECT COUNT(*) FROM task
+        SELECT COUNT(*)
+        FROM task
     </select>
 
-<!--    // 按状态统计任务数-->
-<!--    int countTasksByStatus(@Param("status") TaskStatus status);-->
+    <!--
+        countTasksByStatus
+        按状态统计任务数。
+        resultType：指定返回结果的类型为int。
+        #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler}：
+        用于接收传入的任务状态参数，并使用EnumTypeHandler进行类型转换。
+    -->
     <select id="countTasksByStatus" resultType="int">
-        SELECT COUNT(*) FROM task
+        SELECT COUNT(*)
+        FROM task
         WHERE status = #{status, typeHandler=org.apache.ibatis.type.EnumTypeHandler}
     </select>
 
-<!--    // 最近任务（按创建时间倒序，取前n条）-->
-<!--    List<Task> findRecentTasks(int limit);-->
+    <!--
+        findRecentTasks
+        最近任务（按创建时间倒序，取前n条）。
+        resultMap：指定查询结果集使用TaskResultMap进行映射。
+        #{limit}：用于接收传入的限制条数参数。
+    -->
     <select id="findRecentTasks" resultMap="TaskResultMap">
-        SELECT * FROM task
+        SELECT *
+        FROM task
         ORDER BY created_at DESC
         LIMIT #{limit}
     </select>
 
-   <!-- 统计每日新增任务数量 -->
-<select id="countDailyNewTasks" resultType="map">
-    SELECT
-        DATE_FORMAT(date_range.date, '%Y-%m-%d') AS date,
-        IFNULL(task_counts.count, 0) AS count
-    FROM (
-        SELECT
-            DATE_SUB(CURDATE(), INTERVAL day_offset DAY) AS date,
-            day_offset
+    <!--
+        countDailyNewTasks
+        统计每日新增任务数量。
+        resultType：指定返回结果的类型为map，其中包含日期和对应的任务数量。
+        #{days}：用于接收传入的天数参数，表示统计最近多少天的数据。
+    -->
+    <select id="countDailyNewTasks" resultType="map">
+        SELECT DATE_FORMAT(date_range.date, '%Y-%m-%d') AS date,
+               IFNULL(task_counts.count, 0)                  AS count
         FROM (
-            SELECT (t4.i*1000 + t3.i*100 + t2.i*10 + t1.i) AS day_offset
-            FROM
-                (SELECT 0 AS i UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) t1,
-                (SELECT 0 AS i UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) t2,
-                (SELECT 0 AS i UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) t3,
-                (SELECT 0 AS i UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) t4
-            WHERE
-                <![CDATA[ (t4.i*1000 + t3.i*100 + t2.i*10 + t1.i) <= #{days} ]]>
-        ) offsets
-        WHERE <![CDATA[ DATE_SUB(CURDATE(), INTERVAL day_offset DAY) >= DATE_SUB(CURDATE(), INTERVAL #{days} DAY) ]]>
-    ) date_range
-    LEFT JOIN (
-        SELECT
-            DATE(created_at) AS date,
-            COUNT(*) AS count
-        FROM task
-        WHERE <![CDATA[ created_at >= DATE_SUB(CURDATE(), INTERVAL #{days} DAY) ]]>
-        GROUP BY DATE(created_at)
-    ) task_counts ON date_range.date = task_counts.date
-    ORDER BY date_range.date
-</select>
+                 SELECT DATE_SUB(CURDATE(), INTERVAL day_offset DAY) AS date,
+                        day_offset
+                 FROM (
+                          SELECT (t4.i * 1000 + t3.i * 100 + t2.i * 10 + t1.i) AS day_offset
+                          FROM (SELECT 0 AS i
+                                UNION SELECT 1
+                                UNION SELECT 2
+                                UNION SELECT 3
+                                UNION SELECT 4
+                                UNION SELECT 5
+                                UNION SELECT 6
+                                UNION SELECT 7
+                                UNION SELECT 8
+                                UNION SELECT 9) t1,
+                               (SELECT 0 AS i
+                                UNION SELECT 1
+                                UNION SELECT 2
+                                UNION SELECT 3
+                                UNION SELECT 4
+                                UNION SELECT 5
+                                UNION SELECT 6
+                                UNION SELECT 7
+                                UNION SELECT 8
+                                UNION SELECT 9) t2,
+                               (SELECT 0 AS i
+                                UNION SELECT 1
+                                UNION SELECT 2
+                                UNION SELECT 3
+                                UNION SELECT 4
+                                UNION SELECT 5
+                                UNION SELECT 6
+                                UNION SELECT 7
+                                UNION SELECT 8
+                                UNION SELECT 9) t3,
+                               (SELECT 0 AS i
+                                UNION SELECT 1
+                                UNION SELECT 2
+                                UNION SELECT 3
+                                UNION SELECT 4
+                                UNION SELECT 5
+                                UNION SELECT 6
+                                UNION SELECT 7
+                                UNION SELECT 8
+                                UNION SELECT 9) t4
+                          WHERE <![CDATA[ (t4.i * 1000 + t3.i * 100 + t2.i * 10 + t1.i) <= #{days} ]]>
+                      ) offsets
+                 WHERE <![CDATA[ DATE_SUB(CURDATE(), INTERVAL day_offset DAY) >= DATE_SUB(CURDATE(), INTERVAL #{days} DAY) ]]>
+             ) date_range
+                 LEFT JOIN (
+            SELECT DATE(created_at) AS date,
+                   COUNT(*)          AS count
+            FROM task
+            WHERE <![CDATA[ created_at >= DATE_SUB(CURDATE(), INTERVAL #{days} DAY) ]]>
+            GROUP BY DATE(created_at)
+        ) task_counts ON date_range.date = task_counts.date
+        ORDER BY date_range.date
+    </select>
 
 </mapper>

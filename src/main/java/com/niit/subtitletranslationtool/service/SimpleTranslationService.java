@@ -11,8 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.Map;
-
 /**
  * 提供基于API的简单翻译服务，负责构建翻译请求、发送网络调用并解析最终翻译结果。
  * 支持通过配置注入API基础地址、密钥和模型参数，处理同步翻译请求流程。
@@ -92,7 +90,7 @@ public class SimpleTranslationService {
 
             // 构造API请求体，指定模型、消息列表和非流式模式
             ObjectNode requestBody = objectMapper.createObjectNode();
-            requestBody.put("model",model);
+            requestBody.put("model", model);
             requestBody.set("messages", messagesArray);
             requestBody.put("stream", false);
 

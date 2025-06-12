@@ -44,10 +44,10 @@ public class VideoUploadController {
      * 构造函数，初始化依赖组件及上传目录路径。
      * 自动处理上传目录的绝对路径转换（若配置为相对路径则基于项目根目录解析）。
      *
-     * @param storageService 用于文件存储操作的服务组件
-     * @param taskMapper 数据库任务表操作组件
+     * @param storageService            用于文件存储操作的服务组件
+     * @param taskMapper                数据库任务表操作组件
      * @param asyncVideoProcessingService 视频异步处理服务组件
-     * @param uploadDir 配置文件中指定的上传目录路径（字符串形式）
+     * @param uploadDir                 配置文件中指定的上传目录路径（字符串形式）
      */
     public VideoUploadController(
             StorageService storageService,
@@ -65,7 +65,7 @@ public class VideoUploadController {
     /**
      * 处理视频文件上传请求，执行用户余额校验、文件存储、任务创建及异步处理启动。
      *
-     * @param file 客户端上传的视频文件对象
+     * @param file            客户端上传的视频文件对象
      * @param burnSubtitles 是否将字幕烧录到视频中的标志位（可选，默认false）
      * @return 包含任务ID、处理状态的上传响应实体
      */

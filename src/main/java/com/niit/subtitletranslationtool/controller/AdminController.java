@@ -9,10 +9,10 @@ import com.niit.subtitletranslationtool.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -51,8 +51,11 @@ public class AdminController {
      */
     @GetMapping("/users")
     public String userManagement(Model model) {
+        // 从数据库中获取所有用户
         List<User> users = userMapper.findAllUsers();
+        // 将用户列表添加到模型中，以便在视图中使用
         model.addAttribute("users", users);
+        // 返回用户管理视图
         return "admin/user-management";
     }
 
@@ -64,7 +67,9 @@ public class AdminController {
      */
     @GetMapping("/users/add")
     public String addUserForm(Model model) {
+        // 创建一个新的User对象，用于初始化表单
         model.addAttribute("user", new User());
+        // 返回用户表单视图
         return "admin/user-form";
     }
 
@@ -77,8 +82,11 @@ public class AdminController {
      */
     @GetMapping("/users/edit/{id}")
     public String editUserForm(@PathVariable Long id, Model model) {
+        // 根据ID从数据库中查找用户
         User user = userMapper.findById(id);
+        // 将用户信息添加到模型中，以便在视图中使用
         model.addAttribute("user", user);
+        // 返回用户表单视图
         return "admin/user-form";
     }
 
@@ -91,25 +99,34 @@ public class AdminController {
      */
     @PostMapping("/users/save")
     public String saveUser(User user) {
+        // 判断是新增用户还是编辑用户
         if (user.getId() == null) {
             // 新增用户场景
+            // 对用户密码进行加密
             user.setPassword(passwordEncoder.encode(user.getPassword()));
+            // 设置创建时间和更新时间
             user.setCreatedAt(LocalDateTime.now());
             user.setUpdatedAt(LocalDateTime.now());
+            // 将用户信息插入数据库
             userMapper.insertUser(user);
         } else {
             // 编辑用户场景
+            // 根据ID从数据库中查找现有用户
             User existing = userMapper.findById(user.getId());
+            // 更新用户信息
             existing.setUsername(user.getUsername());
             existing.setEmail(user.getEmail());
             existing.setBalance(user.getBalance());
+            // 仅当新密码非空时更新加密后的密码
             if (!user.getPassword().isEmpty()) {
-                // 仅当新密码非空时更新加密后的密码
                 existing.setPassword(passwordEncoder.encode(user.getPassword()));
             }
+            // 设置更新时间
             existing.setUpdatedAt(LocalDateTime.now());
+            // 更新数据库中的用户信息
             userMapper.updateUser(existing);
         }
+        // 重定向到用户管理页面
         return "redirect:/admin/users";
     }
 
@@ -121,7 +138,9 @@ public class AdminController {
      */
     @GetMapping("/users/delete/{id}")
     public String deleteUser(@PathVariable Long id) {
+        // 根据ID删除用户
         userMapper.deleteUser(id);
+        // 重定向到用户管理页面
         return "redirect:/admin/users";
     }
 
@@ -135,17 +154,21 @@ public class AdminController {
      */
     @GetMapping("/tasks")
     public String taskManagement(Model model, @RequestParam(required = false) Long userId) {
+        // 根据用户ID筛选任务，如果userId为null，则查询所有任务
         List<Task> tasks = userId != null ? taskMapper.findByUserId(userId) : taskMapper.findAllTasks();
+        // 获取所有用户
         List<User> users = userMapper.findAllUsers();
 
         // 构建用户ID到用户名的映射，用于视图快速查找
         Map<Long, String> userIdUsernameMap = users.stream()
                 .collect(Collectors.toMap(User::getId, User::getUsername));
 
+        // 将任务列表、用户列表和用户ID到用户名的映射添加到模型中
         model.addAttribute("tasks", tasks);
         model.addAttribute("users", users);
         model.addAttribute("userIdUsernameMap", userIdUsernameMap);
 
+        // 返回任务管理视图
         return "admin/task-management";
     }
 
@@ -158,8 +181,11 @@ public class AdminController {
      */
     @GetMapping("/tasks/{id}")
     public String taskDetails(@PathVariable Long id, Model model) {
+        // 根据ID从数据库中查找任务
         Task task = taskMapper.findById(id);
+        // 将任务信息添加到模型中，以便在视图中使用
         model.addAttribute("task", task);
+        // 返回任务详情视图
         return "admin/task-details";
     }
 
@@ -177,7 +203,7 @@ public class AdminController {
         if (authentication == null) {
             System.err.println("警告：管理员未认证，SecurityContext中无Authentication对象");
         } else {
-            //调试用代码
+            // 调试用代码
             System.out.println("当前管理员用户名（from Authentication）: " + authentication.getName());
             System.out.println("当前管理员权限: " + authentication.getAuthorities());
         }
@@ -215,6 +241,7 @@ public class AdminController {
         String adminName = getAdminName();
         model.addAttribute("adminName", adminName);
 
+        // 返回管理员后台首页视图
         return "admin/adminindex";
     }
 
@@ -224,11 +251,14 @@ public class AdminController {
      * @return 当前管理员的用户名
      */
     private String getAdminName() {
+        // 从Spring Security上下文中获取认证信息
         SecurityContext context = SecurityContextHolder.getContext();
         Authentication authentication = context.getAuthentication();
+        // 如果认证信息存在且已认证，则返回用户名
         if (authentication != null && authentication.isAuthenticated()) {
             return authentication.getName();
         }
+        // 否则返回默认值
         return "管理员";
     }
 }

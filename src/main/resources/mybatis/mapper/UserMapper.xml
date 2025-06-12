@@ -1,7 +1,8 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
 <!--
-    命名空间，对应于Mapper接口，用于绑定Mapper接口和Mapper.xml文件。
+    namespace：命名空间，对应于Mapper接口，用于绑定Mapper接口和Mapper.xml文件。
     例如：namespace="com.niit.subtitletranslationtool.mapper.UserMapper"，
     表示此Mapper.xml文件对应于UserMapper接口。
 -->
@@ -34,6 +35,10 @@
     -->
     <insert id="insertUser" parameterType="com.niit.subtitletranslationtool.entity.User"
             useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        <!--
+            SQL 插入语句，向 user 表中插入一条新记录。
+            username, password, email, balance, created_at, updated_at 字段的值分别从传入的 User 对象的对应属性中获取。
+        -->
         INSERT INTO user (
             username,
             password,
@@ -57,6 +62,10 @@
         resultMap：指定结果映射，将查询结果映射到UserResultMap定义的实体类属性中。
     -->
     <select id="findByUsername" resultMap="UserResultMap">
+        <!--
+            SQL 查询语句，根据用户名查询用户信息。
+            查询 user 表中 username 字段与传入的 username 参数相匹配的记录。
+        -->
         SELECT id, username, password, email, balance, created_at, updated_at
         FROM user
         WHERE username = #{username}
@@ -64,6 +73,10 @@
 
     <!-- 根据邮箱查询用户 -->
     <select id="findByEmail" resultMap="UserResultMap">
+        <!--
+            SQL 查询语句，根据邮箱查询用户信息。
+            查询 user 表中 email 字段与传入的 email 参数相匹配的记录。
+        -->
         SELECT id, username, password, email, balance, created_at, updated_at
         FROM user
         WHERE email = #{email}
@@ -71,6 +84,10 @@
 
     <!-- 根据ID查询用户 -->
     <select id="findById" resultMap="UserResultMap">
+        <!--
+            SQL 查询语句，根据用户ID查询用户信息。
+            查询 user 表中 id 字段与传入的 id 参数相匹配的记录。
+        -->
         SELECT id, username, password, email, balance, created_at, updated_at
         FROM user
         WHERE id = #{id}
@@ -82,6 +99,10 @@
         parameterType：输入参数的类型，这里是User实体类。
     -->
     <update id="updateUser" parameterType="com.niit.subtitletranslationtool.entity.User">
+        <!--
+            SQL 更新语句，根据传入的 User 对象的属性值更新 user 表中的记录。
+            更新 username, password, email, balance, updated_at 字段，条件是 id 字段与传入的 User 对象的 id 属性相匹配。
+        -->
         UPDATE user
         SET
             username = #{username},
@@ -93,39 +114,48 @@
             id = #{id}
     </update>
 
-
-<!--    提供查询所有用户的方法-->
-<!--    List<User> findAllUsers();-->
-   <select id="findAllUsers" resultMap="UserResultMap">
+    <select id="findAllUsers" resultMap="UserResultMap">
+        <!--
+            SQL 查询语句，查询所有用户信息。
+            查询 user 表中的所有记录。
+        -->
         SELECT id, username, password, email, balance, created_at, updated_at
         FROM user
     </select>
 
-
-<!--    // 按ID删除用户-->
-<!--    void deleteUser(@Param("id") Long id);-->
     <delete id="deleteUser" parameterType="long">
+        <!--
+            SQL 删除语句，根据用户ID删除用户信息。
+            删除 user 表中 id 字段与传入的 id 参数相匹配的记录。
+        -->
         DELETE FROM user WHERE id = #{id}
     </delete>
 
-<!--    // 统计总用户数-->
-<!--    int countAllUsers();-->
     <select id="countAllUsers" resultType="int">
+        <!--
+            SQL 查询语句，统计用户总数。
+            查询 user 表中的记录总数。
+        -->
         SELECT COUNT(*) FROM user
     </select>
 
-<!--    // 最近注册用户（按创建时间倒序，取前n条）-->
-<!--    List<User> findRecentUsers(int limit);-->
     <select id="findRecentUsers" parameterType="int" resultMap="UserResultMap">
+        <!--
+            SQL 查询语句，查询最近注册的用户信息。
+            从 user 表中按照 created_at 字段降序排序，并限制返回的记录数为传入的 limit 参数。
+        -->
         SELECT id, username, password, email, balance, created_at, updated_at
         FROM user
         ORDER BY created_at DESC
         LIMIT #{limit}
     </select>
 
-
-    <!-- 新增用户每日统计 -->
     <select id="countDailyNewUsers" resultType="map">
+        <!--
+            SQL 查询语句，统计每日新增用户数量。
+            该查询使用复杂的 SQL 语句生成一个日期范围，并与 user 表进行左连接，统计每天的新增用户数量。
+            结果集包含 date（日期）和 count（新增用户数量）两个字段。
+        -->
         SELECT
             DATE_FORMAT(date_range.date, '%Y-%m-%d') AS date,
             IFNULL(user_counts.count, 0) AS count

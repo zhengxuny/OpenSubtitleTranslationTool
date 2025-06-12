@@ -1,18 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+    AdminMapper.xml
+    此文件定义了Admin实体类的MyBatis映射，包含了数据库操作的SQL语句。
+    namespace属性指定了对应的Mapper接口，使得MyBatis能够找到对应的SQL语句。
+-->
 <mapper namespace="com.niit.subtitletranslationtool.mapper.AdminMapper">
 
+    <!--
+        BaseResultMap
+        定义了数据库字段和Admin实体类属性之间的映射关系。
+        type属性指定了实体类的完整类名。
+        id标签用于映射主键字段。
+        result标签用于映射其他字段。
+    -->
     <resultMap id="BaseResultMap" type="com.niit.subtitletranslationtool.entity.Admin">
         <id column="id" property="id" jdbcType="INTEGER"/>
         <result column="username" property="username" jdbcType="VARCHAR"/>
         <result column="password" property="password" jdbcType="VARCHAR"/>
     </resultMap>
 
-    <!-- 根据用户名查询 -->
+    <!--
+        selectByUsername
+        根据用户名查询管理员信息。
+        resultMap属性指定了查询结果的映射关系，使用BaseResultMap。
+        #{username}表示参数占位符，MyBatis会自动将传入的username参数替换到这里，防止SQL注入。
+        LIMIT 1 限制查询结果最多返回一条记录，因为用户名应该是唯一的。
+    -->
     <select id="selectByUsername" resultMap="BaseResultMap">
         SELECT id, username, password
-        FROM admin <!-- 改为实际表名 -->
+        FROM admin
         WHERE username = #{username}
         LIMIT 1
     </select>

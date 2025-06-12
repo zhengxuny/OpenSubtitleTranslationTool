@@ -3,10 +3,6 @@ package com.niit.subtitletranslationtool.service;
 import com.niit.subtitletranslationtool.entity.Task;
 import com.niit.subtitletranslationtool.enums.TaskStatus;
 import com.niit.subtitletranslationtool.mapper.TaskMapper;
-import com.niit.subtitletranslationtool.service.FFmpegService;
-import com.niit.subtitletranslationtool.service.SummaryService;
-import com.niit.subtitletranslationtool.service.TranslationService;
-import com.niit.subtitletranslationtool.service.WhisperService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,9 +92,11 @@ public class TaskProcessingService {
         logger.info("开始处理任务: {}", task.getId());
         try {
             // 第一步：视频完整性检查
+            // 设置任务状态为视频检查中
             task.setStatus(TaskStatus.VIDEO_CHECKING);
             taskMapper.updateTask(task);
 
+            // 调用FFmpegService检查视频完整性
             boolean isVideoIntegral = ffmpegService.checkVideoIntegrity(task.getVideoFilePath());
             if (!isVideoIntegral) {
                 // 视频损坏时更新状态为等待用户处理
@@ -110,15 +108,19 @@ public class TaskProcessingService {
             logger.info("视频文件完整性检查通过");
 
             // 第二步：提取视频音轨
+            // 设置任务状态为音频提取中
             task.setStatus(TaskStatus.AUDIO_EXTRACTING);
             logger.info("任务{}开始提取音轨...", task.getId());
             task.setUpdatedAt(LocalDateTime.now());
             taskMapper.updateTask(task);
 
-            String audioFilename = UUID.randomUUID() + ".mp3"; // 生成唯一音频文件名
+            // 生成唯一的音频文件名
+            String audioFilename = UUID.randomUUID() + ".mp3";
+            // 构建音频文件的完整路径
             Path audioPath = tempAudioDir.resolve(audioFilename);
             String audioOutputPath = audioPath.toAbsolutePath().toString();
 
+            // 调用FFmpegService提取音频
             boolean extractSuccess = ffmpegService.extractAudio(task.getVideoFilePath(), audioOutputPath);
             if (!extractSuccess) {
                 // 音轨提取失败时更新状态
@@ -139,13 +141,16 @@ public class TaskProcessingService {
             logger.info("任务{}音轨提取成功，路径: {}", task.getId(), audioOutputPath);
 
             // 第三步：音频转文字生成原始字幕
+            // 设置任务状态为转录中
             task.setStatus(TaskStatus.TRANSCRIBING);
             logger.info("任务{}开始音频转文字...", task.getId());
             task.setUpdatedAt(LocalDateTime.now());
             taskMapper.updateTask(task);
 
+            // 调用WhisperService进行音频转录
             WhisperService.TranscriptionResult transcriptionResult = whisperService.transcribe(task.getExtractedAudioFilePath());
 
+            // 转录成功后更新任务信息
             task.setStatus(TaskStatus.TRANSCRIBED);
             task.setOriginalSrtFilename(transcriptionResult.getSrtFilename());
             task.setOriginalSrtFilePath(transcriptionResult.getSrtFilePath());
@@ -156,6 +161,7 @@ public class TaskProcessingService {
             // 生成视频内容总结（仅当音频转文字成功时执行）
             if (task.getStatus() == TaskStatus.TRANSCRIBED) {
                 try {
+                    // 调用SummaryService生成视频总结
                     String summary = summaryService.summarizeVideo(task.getOriginalSrtFilePath());
                     task.setSummary(summary);
                     taskMapper.updateTask(task);
@@ -166,6 +172,7 @@ public class TaskProcessingService {
             }
 
             // 第四步：翻译原始字幕
+            // 设置任务状态为翻译中
             task.setStatus(TaskStatus.TRANSLATING);
             logger.info("任务{}开始翻译字幕...", task.getId());
             task.setUpdatedAt(LocalDateTime.now());
@@ -174,20 +181,25 @@ public class TaskProcessingService {
             logger.info("任务{}开始翻译，原始SRT路径: {}", task.getId(), task.getOriginalSrtFilePath());
             translationService.translateSrtFile(task); // 执行字幕翻译
 
+            // 翻译完成后更新任务信息
             task.setStatus(TaskStatus.TRANSLATED);
             task.setUpdatedAt(LocalDateTime.now());
             taskMapper.updateTask(task);
             logger.info("任务{}字幕翻译成功，翻译后SRT路径: {}", task.getId(), task.getTranslatedSrtFilePath());
 
             // 可选步骤：压制字幕到视频（仅当任务要求时执行）
+            // 检查任务是否已翻译且需要压制字幕
             if (task.getStatus() == TaskStatus.TRANSLATED && task.isBurnSubtitles()) {
+                // 设置任务状态为字幕压制中
                 task.setStatus(TaskStatus.SUBTITLE_BURNING);
                 taskMapper.updateTask(task);
 
+                // 构建输出目录和文件名
                 Path outputDir = Paths.get(subtitledVideoDir);
                 String outputFilename = "subtitled_" + task.getOriginalVideoFilename();
                 String outputPath = outputDir.resolve(outputFilename).toString();
 
+                // 调用FFmpegService压制字幕
                 boolean success = ffmpegService.burnSubtitles(
                         task.getVideoFilePath(),
                         task.getTranslatedSrtFilePath(),
@@ -208,7 +220,7 @@ public class TaskProcessingService {
             }
 
         } catch (Exception e) {
-            // 根据当前处理阶段确定错误状态
+            // 异常处理：根据当前处理阶段确定错误状态
             TaskStatus errorStatus;
             if (task.getStatus() == TaskStatus.AUDIO_EXTRACTING) {
                 errorStatus = TaskStatus.EXTRACTION_FAILED;

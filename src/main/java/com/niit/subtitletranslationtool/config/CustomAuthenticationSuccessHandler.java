@@ -40,28 +40,36 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
      * 处理用户认证成功后的响应逻辑。
      * 设置HTTP响应状态为成功，返回包含用户基本信息（ID、用户名、余额）的JSON数据。
      *
-     * @param request 包含客户端请求信息的HTTP请求对象
-     * @param response 用于构造响应的HTTP响应对象
+     * @param request      包含客户端请求信息的HTTP请求对象
+     * @param response     用于构造响应的HTTP响应对象
      * @param authentication 包含认证成功用户信息的认证对象
      * @throws IOException 当JSON数据写入响应流失败时抛出
      */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
-        response.setStatus(HttpServletResponse.SC_OK);  // 设置HTTP响应状态码为200（成功）
-        response.setContentType("application/json;charset=UTF-8");  // 指定响应内容类型为UTF-8编码的JSON格式
+        // 设置HTTP响应状态码为200（成功）
+        response.setStatus(HttpServletResponse.SC_OK);
+        // 指定响应内容类型为UTF-8编码的JSON格式
+        response.setContentType("application/json;charset=UTF-8");
 
-        String username = authentication.getName();  // 从认证对象中提取登录用户的用户名
-        User user = userMapper.findByUsername(username);  // 通过用户Mapper根据用户名查询数据库获取用户详细信息
+        // 从认证对象中提取登录用户的用户名
+        String username = authentication.getName();
+        // 通过用户Mapper根据用户名查询数据库获取用户详细信息
+        User user = userMapper.findByUsername(username);
 
+        // 创建并初始化响应数据容器，添加登录成功提示信息
         Map<String, Object> data = new HashMap<>();
-        data.put("message", "登录成功");  // 创建并初始化响应数据容器，添加登录成功提示信息
+        data.put("message", "登录成功");
 
-        if (user != null) {  // 若用户信息查询成功（非空）
+        // 若用户信息查询成功（非空）
+        if (user != null) {
+            // 向响应数据中添加用户ID、用户名和余额信息
             data.put("userId", user.getId());
             data.put("username", user.getUsername());
-            data.put("balance", user.getBalance());  // 向响应数据中添加用户ID、用户名和余额信息
+            data.put("balance", user.getBalance());
         }
 
-        objectMapper.writeValue(response.getWriter(), data);  // 使用ObjectMapper将响应数据序列化为JSON并写入响应输出流
+        // 使用ObjectMapper将响应数据序列化为JSON并写入响应输出流
+        objectMapper.writeValue(response.getWriter(), data);
     }
 }
