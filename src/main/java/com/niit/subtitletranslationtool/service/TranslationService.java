@@ -125,9 +125,6 @@ public class TranslationService {
             translatedBlocks.addAll(future.get());
         }
 
-        // 验证翻译后的块格式
-        validateSrtBlocks(translatedBlocks);
-
         // 生成翻译后的文件
         String translatedSrtFilename = "translated_" + task.getOriginalSrtFilename();
         Path translatedPath = translatedSrtDir.resolve(translatedSrtFilename);
@@ -284,10 +281,14 @@ public class TranslationService {
                 String translatedText = callDoubaoApi(prompt);
                 List<String> translatedBlocks = parseTranslatedBlocks(translatedText);
 
-                // 验证块数量一致性
+                // 1. 验证块数量一致性
                 if (translatedBlocks.size() != chunk.size()) {
                     throw new RuntimeException("结果数量不匹配: 预期" + chunk.size() + " 实际" + translatedBlocks.size());
                 }
+
+                // 2. 验证每个块的格式有效性
+                validateSrtBlocks(translatedBlocks);
+
                 return translatedBlocks;
             } catch (Exception e) {
                 if (attempt == MAX_RETRIES) {
