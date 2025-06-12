@@ -112,7 +112,7 @@ public class FFmpegService {
         // 构建视频完整性检测命令（仅解析不输出）
         ProcessBuilder processBuilder = new ProcessBuilder(
                 "ffmpeg",
-                "-v", "404.html",          // 仅输出错误日志
+                "-v", "error",          // 仅输出错误日志
                 "-i", videoFilePath,
                 "-f", "null",           // 输出格式为null（无实际输出）
                 "-"

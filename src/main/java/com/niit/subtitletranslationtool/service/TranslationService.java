@@ -3,7 +3,6 @@ package com.niit.subtitletranslationtool.service;
 import com.niit.subtitletranslationtool.entity.Task;
 import com.niit.subtitletranslationtool.enums.TaskStatus;
 import com.niit.subtitletranslationtool.mapper.TaskMapper;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +32,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import com.niit.subtitletranslationtool.service.UserService;
 
 /**
  * 提供字幕文件翻译服务，处理SRT文件的分块翻译、API调用和结果处理。
@@ -42,19 +40,19 @@ import com.niit.subtitletranslationtool.service.UserService;
 @RequiredArgsConstructor
 public class TranslationService {
 
-    private final RestTemplate restTemplate;
-    private final TaskMapper taskMapper;
-    private final String doubaoApiBase;
-    private final String doubaoApiKey;
-    private final String doubaoModel;
-    private final int doubaoMaxContextLength;
-    private final Path translatedSrtDir;
-    private final ExecutorService translationExecutor = Executors.newFixedThreadPool(5);
-    private static final int CHUNK_SIZE = 25;
-    private static final int MAX_RETRIES = 1;
+    private final RestTemplate restTemplate; // 用于发起HTTP请求的模板
+    private final TaskMapper taskMapper; // 用于访问任务数据的Mapper接口
+    private final String doubaoApiBase; // 豆包API的基础URL，从配置文件中读取
+    private final String doubaoApiKey; // 豆包API的密钥，从配置文件中读取
+    private final String doubaoModel; // 使用的豆包模型名称，从配置文件中读取
+    private final int doubaoMaxContextLength; // 豆包API最大上下文长度，从配置文件中读取
+    private final Path translatedSrtDir; // 翻译后的SRT文件存储目录
+    private final ExecutorService translationExecutor = Executors.newFixedThreadPool(5); // 翻译任务的线程池，固定大小为5
+    private static final int CHUNK_SIZE = 20; // 字幕分块大小，每块包含20个字幕条目（修改为20）
+    private static final int MAX_RETRIES = 1; // 最大重试次数，当API调用失败时重试
 
     @Autowired
-    private UserService userService;
+    private UserService userService; // 注入用户服务，用于扣费
 
     /**
      * 构造TranslationService服务对象。
@@ -111,32 +109,41 @@ public class TranslationService {
         String originalSrtPath = task.getOriginalSrtFilePath();
         String originalContent = Files.readString(Paths.get(originalSrtPath), StandardCharsets.UTF_8);
 
-        List<SrtEntry> entries = parseSrtEntries(originalContent);
-        List<List<SrtEntry>> chunks = chunkEntries(entries);
+        // 解析原始SRT块（保留序号、时间码、内容结构）
+        List<String> originalBlocks = parseSrtBlocks(originalContent);
+        // 分块（每块20个）
+        List<List<String>> chunks = chunkBlocks(originalBlocks);
 
-        List<CompletableFuture<List<SrtEntry>>> futures = chunks.stream()
+        // 异步翻译每个块
+        List<CompletableFuture<List<String>>> futures = chunks.stream()
                 .map(chunk -> CompletableFuture.supplyAsync(() -> retryTranslateChunk(chunk), translationExecutor))
                 .collect(Collectors.toList());
 
-        List<SrtEntry> translatedEntries = new ArrayList<>();
-        for (CompletableFuture<List<SrtEntry>> future : futures) {
-            translatedEntries.addAll(future.get());
+        // 收集翻译结果
+        List<String> translatedBlocks = new ArrayList<>();
+        for (CompletableFuture<List<String>> future : futures) {
+            translatedBlocks.addAll(future.get());
         }
 
-        validateSrtContent(translatedEntries);
+        // 验证翻译后的块格式
+        validateSrtBlocks(translatedBlocks);
 
+        // 生成翻译后的文件
         String translatedSrtFilename = "translated_" + task.getOriginalSrtFilename();
         Path translatedPath = translatedSrtDir.resolve(translatedSrtFilename);
-        Files.writeString(translatedPath, buildSrtContent(translatedEntries), StandardCharsets.UTF_8);
+        Files.writeString(translatedPath, buildSrtContent(translatedBlocks), StandardCharsets.UTF_8);
 
+        // 更新任务状态
         task.setTranslatedSrtFilename(translatedSrtFilename);
         task.setTranslatedSrtFilePath(translatedPath.toString());
         task.setStatus(TaskStatus.TRANSLATED);
         taskMapper.updateTask(task);
 
-        // 计算费用并进行扣费
-        int totalWords = translatedEntries.stream()
-                .mapToInt(entry -> entry.content().length())
+        // 计算费用并扣费（统计内容部分字数）
+        int totalWords = translatedBlocks.stream()
+                .map(block -> block.split("\\r?\\n", 3)) // 分割为序号、时间码、内容
+                .filter(parts -> parts.length >= 3) // 过滤无效块
+                .mapToInt(parts -> parts[2].trim().length()) // 统计内容长度
                 .sum();
         BigDecimal cost = BigDecimal.valueOf(totalWords)
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
@@ -145,68 +152,89 @@ public class TranslationService {
     }
 
     /**
-     * 解析SRT内容为结构化条目列表。
-     *
-     * @param content SRT文件原始内容
-     * @return 解析后的字幕条目列表
+     * 解析SRT内容为原始块列表（保留序号、时间码、内容的原始结构）
      */
-    private List<SrtEntry> parseSrtEntries(String content) {
+    private List<String> parseSrtBlocks(String content) {
         return Arrays.stream(content.split("\\r?\\n\\r?\\n"))
                 .filter(block -> !block.isBlank())
-                .map(block -> {
-                    String[] parts = block.split("\\r?\\n", 3);
-                    if (parts.length < 3) {
-                        System.err.println("跳过格式错误块: \n" + block);
-                        return null;
-                    }
-                    return new SrtEntry(parts[0].trim(), parts[1].trim(), parts[2].trim());
-                })
-                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
     /**
-     * 将条目列表分块处理。
-     *
-     * @param entries 待处理条目列表
-     * @return 分块后的字幕组
+     * 将原始块列表分块（每块20个）
      */
-    private List<List<SrtEntry>> chunkEntries(List<SrtEntry> entries) {
-        return IntStream.range(0, (entries.size() + CHUNK_SIZE - 1) / CHUNK_SIZE)
-                .mapToObj(i -> entries.subList(
+    private List<List<String>> chunkBlocks(List<String> blocks) {
+        return IntStream.range(0, (blocks.size() + CHUNK_SIZE - 1) / CHUNK_SIZE)
+                .mapToObj(i -> blocks.subList(
                         i * CHUNK_SIZE,
-                        Math.min((i + 1) * CHUNK_SIZE, entries.size())
+                        Math.min((i + 1) * CHUNK_SIZE, blocks.size())
                 ))
                 .collect(Collectors.toList());
     }
 
     /**
-     * 构建翻译提示文本。
-     *
-     * @param chunk 待翻译字幕块
-     * @return 完整的翻译提示文本
+     * 构建翻译提示文本（优化版：结合角色、规则和示例）
      */
-    private String buildTranslationPrompt(List<SrtEntry> chunk) {
-        StringBuilder prompt = new StringBuilder("你是专业的字幕翻译专家，请严格按照以下要求翻译SRT字幕：\n");
-        prompt.append("- 保持原有序号（如'1'）完全不变\n");
-        prompt.append("- 保持原有时间戳（如'00:00:03,760 --> 00:00:10,220'）完全不变\n");
-        prompt.append("- 仅将第三行的字幕内容部分翻译成简体中文，就想原本就是用中文写的一样。在翻译时，请仔细阅读并理解原文，必要时请根据联系上下文进行翻译，但不要添加额外信息或解释\n");
-        prompt.append("- 保持每个字幕块的结构（三行一组，块之间用空行分隔）\n");
-        prompt.append("原始SRT字幕块如下：\n");
+    private String buildTranslationPrompt(List<String> chunk) {
+        // 使用 StringBuilder 以获得更好的性能
+        StringBuilder prompt = new StringBuilder();
 
-        for (SrtEntry entry : chunk) {
-            prompt.append(entry.sequence()).append("\n");
-            prompt.append(entry.timecode()).append("\n");
-            prompt.append(entry.content()).append("\n\n");
+        // 1. 角色和总体任务定义
+        prompt.append("你是一个专业的SRT字幕翻译程序。你的任务是将用户提供的SRT字幕文本块中的英文对话翻译成简体中文。");
+        prompt.append("你必须严格遵守以下所有规则，并完全模仿示例中的输出格式。\n\n");
+
+        // 2. 规则列表 (更严格和清晰)
+        prompt.append("--- 规则 ---\n");
+        prompt.append("1. 【格式保留】: 必须完整保留原始的序号、时间戳和空行结构，不得有任何改动。\n");
+        prompt.append("2. 【仅翻译内容】: 只翻译对话文本。序号和时间戳绝对不能翻译。\n");
+        prompt.append("3. 【翻译风格】: 译文必须达到专业影视剧字幕的标准，具体要求如下：\n" +
+                "- a. 【简洁至上】: 句子必须简短、精炼、易于快速阅读。果断舍弃不影响核心意思的冗余词语。\n" +
+                "- b. 【塑造角色】: 仔细揣摩原文的语气，使译文符合说话者的身份、性格和情绪。例如，教授的用词应严谨，年轻人的对话应生动活泼。\n" +
+                "- c. 【口语地道】: 使用地道的简体中文口语，完全避免“翻译腔”。如果原文是俚语或俗语，请找到中文里对应的口头表达。\n" +
+                "- d. 【情景贴合】: 译文要与画面情景（如幽默、紧张、悲伤）相匹配。笑点需要翻译得让中文观众也能笑出来。\n" +
+                "- e. 【保持节奏】: 恰当处理原文中的停顿、口头禅（如 'you know', 'like', 'um'），可以酌情省略或用中文里的“呃”、“这个”、“你知道吧”等词来体现人物的说话节奏。\n");
+        prompt.append("4. 【无额外信息】: 绝对不要在你的回答中包含任何解释、注释、说明或原始文本。你的输出必须是且仅是翻译好的SRT字幕块。\n\n");
+
+        // 3. 提供一个完美的“输入->输出”示例 (Few-Shot Prompting)
+        prompt.append("--- 示例 ---\n");
+        prompt.append("【原始字幕】:\n");
+        prompt.append("1\n");
+        prompt.append("00:00:03,760 --> 00:00:06,220\n");
+        prompt.append("This is an example.\n\n");
+        prompt.append("2\n");
+        prompt.append("00:00:07,100 --> 00:00:10,850\n");
+        prompt.append("Please translate the text\nand keep the format.\n\n");
+
+        prompt.append("【你的输出】:\n");
+        prompt.append("1\n");
+        prompt.append("00:00:03,760 --> 00:00:06,220\n");
+        prompt.append("这是一个示例。\n\n");
+        prompt.append("2\n");
+        prompt.append("00:00:07,100 --> 00:00:10,850\n");
+        prompt.append("请翻译这里的文本\n并保持格式。\n\n");
+        prompt.append("--- 结束示例 ---\n\n");
+
+        // 4. 给出实际任务
+        prompt.append("现在，请处理以下SRT字幕块：\n");
+        prompt.append("【原始字幕】:\n");
+
+        // 这部分与你的原始代码相同，用于附加待翻译的字幕
+        for (String line : chunk) {
+            prompt.append(line).append("\n");
+        }
+        // 添加一个结尾提示，让AI知道任务的终点
+        prompt.append("\n【你的输出】:\n");
+
+
+        // 直接添加原始块（无需拆分重组）
+        for (String block : chunk) {
+            prompt.append(block).append("\n\n");
         }
         return prompt.toString().trim();
     }
 
     /**
      * 调用豆包API进行翻译处理。
-     *
-     * @param prompt 完整翻译提示
-     * @return API返回的翻译结果
      */
     private String callDoubaoApi(String prompt) {
         HttpHeaders headers = new HttpHeaders();
@@ -217,6 +245,7 @@ public class TranslationService {
         requestBody.put("model", doubaoModel);
         requestBody.put("temperature", 0.3);
         requestBody.put("messages", List.of(Map.of("role", "user", "content", prompt)));
+        requestBody.put("thinking", Map.of("type", "disabled"));
 
         ResponseEntity<DoubaoResponse> response = restTemplate.exchange(
                 doubaoApiBase + "/chat/completions",
@@ -225,7 +254,6 @@ public class TranslationService {
                 DoubaoResponse.class
         );
 
-        // 处理API响应错误情况
         if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
             throw new RuntimeException("API调用失败: 状态码=" + response.getStatusCode());
         }
@@ -247,23 +275,20 @@ public class TranslationService {
     }
 
     /**
-     * 带重试机制的块翻译处理。
-     *
-     * @param chunk 待翻译字幕块
-     * @return 翻译完成的条目列表
+     * 带重试机制的块翻译处理（返回原始块列表）
      */
-    private List<SrtEntry> retryTranslateChunk(List<SrtEntry> chunk) {
+    private List<String> retryTranslateChunk(List<String> chunk) {
         for (int attempt = 0; attempt <= MAX_RETRIES; attempt++) {
             try {
                 String prompt = buildTranslationPrompt(chunk);
                 String translatedText = callDoubaoApi(prompt);
-                List<SrtEntry> result = parseTranslatedText(chunk, translatedText);
+                List<String> translatedBlocks = parseTranslatedBlocks(translatedText);
 
-                // 验证返回条目数量
-                if (result.size() != chunk.size()) {
-                    throw new RuntimeException("结果数量不匹配: 预期" + chunk.size() + " 实际" + result.size());
+                // 验证块数量一致性
+                if (translatedBlocks.size() != chunk.size()) {
+                    throw new RuntimeException("结果数量不匹配: 预期" + chunk.size() + " 实际" + translatedBlocks.size());
                 }
-                return result;
+                return translatedBlocks;
             } catch (Exception e) {
                 if (attempt == MAX_RETRIES) {
                     throw new RuntimeException("翻译重试失败: " + e.getMessage(), e);
@@ -274,81 +299,44 @@ public class TranslationService {
     }
 
     /**
-     * 解析翻译后的文本内容。
-     *
-     * @param originalChunk  原始字幕块
-     * @param translatedText 翻译后文本
-     * @return 结构化翻译结果
+     * 解析翻译后的文本为原始块列表
      */
-    private List<SrtEntry> parseTranslatedText(List<SrtEntry> originalChunk, String translatedText) {
-        String[] translatedBlocks = translatedText.split("\\r?\\n\\r?\\n");
-
-        // 验证块数量一致性
-        if (translatedBlocks.length != originalChunk.size()) {
-            throw new RuntimeException("块数量不匹配: 预期" + originalChunk.size() + " 实际" + translatedBlocks.length);
-        }
-
-        return IntStream.range(0, originalChunk.size())
-                .mapToObj(i -> {
-                    SrtEntry original = originalChunk.get(i);
-                    String[] parts = translatedBlocks[i].split("\\r?\\n", 3);
-
-                    // 处理解析异常情况
-                    if (parts.length < 3) {
-                        return new SrtEntry(original.sequence(), original.timecode(), original.content());
-                    }
-                    return new SrtEntry(original.sequence(), original.timecode(), parts[2].trim());
-                })
+    private List<String> parseTranslatedBlocks(String translatedText) {
+        return Arrays.stream(translatedText.split("\\r?\\n\\r?\\n"))
+                .filter(block -> !block.isBlank())
                 .collect(Collectors.toList());
     }
 
     /**
-     * 构建最终SRT文件内容。
-     *
-     * @param entries 翻译完成的条目
-     * @return 完整的SRT文件内容
+     * 构建最终SRT文件内容（直接拼接原始块）
      */
-    private String buildSrtContent(List<SrtEntry> entries) {
-        return entries.stream()
-                .map(entry -> entry.sequence() + "\n" + entry.timecode() + "\n" + entry.content())
-                .collect(Collectors.joining("\n\n"));
+    private String buildSrtContent(List<String> blocks) {
+        return String.join("\n\n", blocks); // 块之间用空行分隔
     }
 
     /**
-     * 验证SRT内容格式有效性。
-     *
-     * @param entries 待验证条目
-     * @throws Exception 验证失败异常
+     * 验证SRT块格式有效性（序号、时间码、内容）
      */
-    private void validateSrtContent(List<SrtEntry> entries) throws Exception {
-        for (int i = 0; i < entries.size(); i++) {
-            SrtEntry entry = entries.get(i);
-
-            // 验证序号格式
-            if (!entry.sequence().matches("\\d+")) {
-                throw new RuntimeException("序号格式错误: " + entry.sequence());
+    private void validateSrtBlocks(List<String> blocks) throws Exception {
+        for (String block : blocks) {
+            String[] parts = block.split("\\r?\\n", 3);
+            if (parts.length < 3) {
+                throw new RuntimeException("块格式错误: " + block);
             }
-
-            // 验证时间码格式
-            if (!entry.timecode().matches("\\d{2}:\\d{2}:\\d{2},\\d{3} --> \\d{2}:\\d{2}:\\d{2},\\d{3}")) {
-                throw new RuntimeException("时间码格式错误: " + entry.timecode());
+            // 验证序号（数字）
+            if (!parts[0].trim().matches("\\d+")) {
+                throw new RuntimeException("序号格式错误: " + parts[0].trim());
             }
-
+            // 验证时间码（HH:mm:ss,SSS --> HH:mm:ss,SSS）
+            if (!parts[1].trim().matches("\\d{2}:\\d{2}:\\d{2},\\d{3} --> \\d{2}:\\d{2}:\\d{2},\\d{3}")) {
+                throw new RuntimeException("时间码格式错误: " + parts[1].trim());
+            }
             // 验证内容非空
-            if (entry.content().isBlank()) {
-                throw new RuntimeException("内容为空: " + entry.sequence());
+            if (parts[2].trim().isBlank()) {
+                throw new RuntimeException("内容为空: " + parts[0].trim());
             }
         }
     }
-
-    /**
-     * SRT条目内部表示结构。
-     *
-     * @param sequence 序号
-     * @param timecode 时间码
-     * @param content  内容文本
-     */
-    private record SrtEntry(String sequence, String timecode, String content) {}
 
     /**
      * 豆包API响应数据结构。
@@ -357,17 +345,11 @@ public class TranslationService {
     private static class DoubaoResponse {
         private List<Choice> choices;
 
-        /**
-         * 选择项数据结构。
-         */
         @Data
         public static class Choice {
             private Message message;
         }
 
-        /**
-         * 消息内容结构。
-         */
         @Data
         public static class Message {
             private String content;
