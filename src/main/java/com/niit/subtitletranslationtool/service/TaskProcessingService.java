@@ -9,9 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -197,19 +199,37 @@ public class TaskProcessingService {
                 // 构建输出目录和文件名
                 Path outputDir = Paths.get(subtitledVideoDir);
                 String outputFilename = "subtitled_" + task.getOriginalVideoFilename();
-                String outputPath = outputDir.resolve(outputFilename).toString();
+
+                // 分离文件名和扩展名
+                String baseName = outputFilename;
+                String extension = "";
+                int dotIndex = outputFilename.lastIndexOf('.');
+                if (dotIndex > 0) {
+                    baseName = outputFilename.substring(0, dotIndex);
+                    extension = outputFilename.substring(dotIndex);
+                }
+
+                Path outputPath = outputDir.resolve(outputFilename);
+
+                // 检查输出目录中是否存在重名文件
+                while (Files.exists(outputPath)) {
+                    // 生成随机5位字符后缀
+                    String randomSuffix = generateRandomSuffix(5);
+                    outputFilename = baseName + "_" + randomSuffix + extension;
+                    outputPath = outputDir.resolve(outputFilename);
+                }
 
                 // 调用FFmpegService压制字幕
                 boolean success = ffmpegService.burnSubtitles(
                         task.getVideoFilePath(),
                         task.getTranslatedSrtFilePath(),
-                        outputPath
+                        outputPath.toString()
                 );
 
                 if (success) {
                     // 压制成功时记录输出信息
                     task.setSubtitledVideoFilename(outputFilename);
-                    task.setSubtitledVideoFilePath(outputPath);
+                    task.setSubtitledVideoFilePath(outputPath.toString());
                     task.setStatus(TaskStatus.COMPLETED);
                 } else {
                     // 压制失败时更新错误状态
@@ -239,5 +259,16 @@ public class TaskProcessingService {
             taskMapper.updateTask(task);
             logger.error("任务{}处理异常: {}", task.getId(), e.getMessage(), e);
         }
+    }
+
+    // 生成随机5位字符后缀的方法
+    private String generateRandomSuffix(int length) {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder sb = new StringBuilder(length);
+        Random random = new Random();
+        for (int i = 0; i < length; i++) {
+            sb.append(characters.charAt(random.nextInt(characters.length())));
+        }
+        return sb.toString();
     }
 }
