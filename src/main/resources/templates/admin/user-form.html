@@ -1,55 +1,152 @@
-<!-- src/main/resources/templates/admin/user-form.html -->
 <!DOCTYPE html>
+<!--
+  此文件是用户表单页面，用于新增或编辑用户信息。
+  根据传入的用户对象（user）的id判断是新增还是编辑。
+  如果user.id为空，则显示“新增用户”；否则显示“编辑用户”。
+  页面包含一个表单，用于输入用户名、邮箱、密码和账户余额。
+  密码字段在编辑时允许留空，表示不修改密码。
+-->
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <title th:text="${user.id == null ? '新增用户' : '编辑用户'}">用户管理</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/admin-common.css"> <!-- 公共样式 -->
-</head>
-<body>
-<div th:replace="~{fragments/admin-navbar :: admin-navbar}"></div>
 
-<div class="container mt-4" style="padding-top: 60px;"> <!-- 添加内边距 -->
+<head>
+  <!--
+    页面的标题，根据用户id判断是新增用户还是编辑用户。
+    th:text="${user.id == null ? '新增用户' : '编辑用户'}"：
+      - 如果user.id为null，则显示“新增用户”。
+      - 否则，显示“编辑用户”。
+  -->
+  <title th:text="${user.id == null ? '新增用户' : '编辑用户'}">用户管理</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- 引入Bootstrap CSS，用于快速构建响应式布局和美化界面 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- 引入Font Awesome CSS，用于添加图标 -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <!-- 引入自定义的公共样式 -->
+  <link rel="stylesheet" href="/static/css/admin-common.css">
+</head>
+
+<body>
+  <!--
+    引入admin-navbar片段，作为导航栏。
+    th:replace="~{fragments/admin-navbar :: admin-navbar}"：
+      - 使用Thymeleaf的片段替换功能。
+      - ~{fragments/admin-navbar :: admin-navbar}表示引用fragments/admin-navbar.html文件中的admin-navbar片段。
+  -->
+  <div th:replace="~{fragments/admin-navbar :: admin-navbar}"></div>
+
+  <!--
+    主要内容区域，包含表单。
+    container类用于创建一个固定宽度的容器，mt-4添加上边距，style="padding-top: 60px;"用于调整顶部内边距，防止内容被导航栏遮挡。
+  -->
+  <div class="container mt-4" style="padding-top: 60px;">
+    <!--
+      页面标题，根据用户id判断是新增用户还是编辑用户。
+      th:text="${user.id == null ? '新增用户' : '编辑用户'}"：
+        - 如果user.id为null，则显示“新增用户”。
+        - 否则，显示“编辑用户”。
+    -->
     <h1 class="mb-4" th:text="${user.id == null ? '新增用户' : '编辑用户'}"></h1>
 
+    <!--
+      表单，用于提交用户信息。
+      th:action="@{/admin/users/save}"：
+        - 设置表单提交的URL为/admin/users/save。
+        - @{...}是Thymeleaf的URL表达式，用于生成URL。
+      method="post"：
+        - 设置表单提交的方法为POST。
+      class="row g-3"：
+        - 使用Bootstrap的栅格系统，将表单元素排列成行，并添加间距。
+    -->
     <form th:action="@{/admin/users/save}" method="post" class="row g-3">
-        <input type="hidden" th:name="id" th:value="${user.id}">
+      <!--
+        隐藏字段，用于传递用户id。
+        如果用户id存在，则表示编辑用户；否则表示新增用户。
+        th:name="id"：
+          - 设置字段的name属性为id。
+        th:value="${user.id}"：
+          - 设置字段的值为用户id。
+      -->
+      <input type="hidden" th:name="id" th:value="${user.id}">
 
-        <div class="col-md-6">
-            <label for="username" class="form-label">用户名</label>
-            <input type="text" class="form-control" id="username" name="username"
-                   th:value="${user.username}" required>
-        </div>
+      <!--
+        用户名输入框。
+        col-md-6：
+          - 使用Bootstrap的栅格系统，将输入框占据一半的宽度（在中等屏幕及以上）。
+        label：
+          - for="username"：关联的input元素的id。
+          - class="form-label"：Bootstrap样式，用于美化label。
+        input：
+          - type="text"：文本输入框。
+          - class="form-control"：Bootstrap样式，用于美化输入框。
+          - id="username"：输入框的id，与label的for属性关联。
+          - name="username"：输入框的name属性，用于提交表单数据。
+          - th:value="${user.username}"：设置输入框的值为用户名。
+          - required：必填字段。
+      -->
+      <div class="col-md-6">
+        <label for="username" class="form-label">用户名</label>
+        <input type="text" class="form-control" id="username" name="username" th:value="${user.username}" required>
+      </div>
 
-        <div class="col-md-6">
-            <label for="email" class="form-label">邮箱</label>
-            <input type="email" class="form-control" id="email" name="email"
-                   th:value="${user.email}" required>
-        </div>
+      <!--
+        邮箱输入框，与用户名输入框类似。
+        type="email"：
+          - 邮箱类型的输入框，会自动验证邮箱格式。
+      -->
+      <div class="col-md-6">
+        <label for="email" class="form-label">邮箱</label>
+        <input type="email" class="form-control" id="email" name="email" th:value="${user.email}" required>
+      </div>
 
-        <div class="col-md-6">
-            <label for="password" class="form-label">密码</label>
-            <input type="password" class="form-control" id="password" name="password"
-                   th:placeholder="${user.id != null ? '留空则不修改' : ''}"
-                   th:required="${user.id == null}">
-        </div>
+      <!--
+        密码输入框。
+        th:placeholder="${user.id != null ? '留空则不修改' : ''}"：
+          - 如果用户id存在（编辑用户），则显示“留空则不修改”的占位符。
+          - 否则，不显示占位符。
+        th:required="${user.id == null}"：
+          - 如果用户id为null（新增用户），则设置为必填字段。
+          - 否则，不是必填字段（编辑用户时可以不修改密码）。
+      -->
+      <div class="col-md-6">
+        <label for="password" class="form-label">密码</label>
+        <input type="password" class="form-control" id="password" name="password"
+          th:placeholder="${user.id != null ? '留空则不修改' : ''}" th:required="${user.id == null}">
+      </div>
 
-        <div class="col-md-6">
-            <label for="balance" class="form-label">账户余额</label>
-            <input type="number" class="form-control" id="balance" name="balance"
-                   th:value="${user.balance}" step="0.01" required>
-        </div>
+      <!--
+        账户余额输入框。
+        type="number"：
+          - 数字类型的输入框。
+        step="0.01"：
+          - 设置步长为0.01，允许输入小数。
+      -->
+      <div class="col-md-6">
+        <label for="balance" class="form-label">账户余额</label>
+        <input type="number" class="form-control" id="balance" name="balance" th:value="${user.balance}" step="0.01"
+          required>
+      </div>
 
-        <div class="col-12">
-            <button type="submit" class="btn btn-primary">保存</button>
-            <a href="/admin/users" class="btn btn-secondary ms-2">返回</a>
-        </div>
+      <!--
+        提交按钮和返回按钮。
+        col-12：
+          - 占据整行宽度。
+        button：
+          - type="submit"：提交按钮。
+          - class="btn btn-primary"：Bootstrap样式，用于美化按钮。
+        a：
+          - href="/admin/users"：返回用户列表页面的URL。
+          - class="btn btn-secondary ms-2"：Bootstrap样式，用于美化按钮，并添加左边距。
+      -->
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">保存</button>
+        <a href="/admin/users" class="btn btn-secondary ms-2">返回</a>
+      </div>
     </form>
-</div>
+  </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- 引入Bootstrap JavaScript，用于启用Bootstrap的交互功能 -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

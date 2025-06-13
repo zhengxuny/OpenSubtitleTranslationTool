@@ -1,43 +1,88 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<body>
-<!--
-  修改点:
-  1. 移除了 'bg-dark' 类。
-  2. 添加了 'navbar-translucent' 自定义类，用于应用毛玻璃效果。
--->
-<nav class="navbar navbar-expand-lg navbar-dark fixed-top navbar-translucent" th:fragment="navbar">
-    <div class="container-fluid">
-        <a class="navbar-brand" th:href="@{/index}">字幕翻译工具</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/index}"><i class="fas fa-home"></i> 主页</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/upload}"><i class="fas fa-upload"></i> 上传视频</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/SimpleTranslation}"><i class="fas fa-language"></i> 文本翻译</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/topup}"><i class="fas fa-credit-card"></i> 账户充值</a>
-                </li>
-            </ul>
-            <div class="navbar-text d-flex align-items-center">
-                <span class="me-3">你好, <span th:text="${username}">用户</span>!</span>
-                <!-- Assume balance is available in session or model attribute 'userBalance' -->
-                <span class="me-3">余额: ¥<span th:text="${userBalance != null ? #numbers.formatDecimal(userBalance, 1, 2) : '0.00'}">0.00</span></span>
 
-                <a th:href="@{/logout}" class="btn btn-outline-light btn-sm">
-                    <i class="fas fa-sign-out-alt"></i> 登出
-                </a>
-            </div>
+<body>
+  <!--
+    导航栏片段，用于在各个页面中提供一致的导航体验。
+    此片段包含了网站的Logo、导航链接（主页、上传视频、文本翻译、账户充值）以及用户认证信息（用户名、余额、登出链接）。
+    使用了Thymeleaf模板引擎的语法，可以动态地显示用户名和余额。
+  -->
+  <nav class="navbar navbar-expand-lg navbar-dark fixed-top navbar-translucent" th:fragment="navbar">
+    <div class="container-fluid">
+      <!-- 网站Logo，点击后跳转到主页 -->
+      <a class="navbar-brand" th:href="@{/index}">字幕翻译工具</a>
+      <!--
+        移动设备上的导航栏折叠按钮。
+        当屏幕尺寸较小时，导航链接会折叠起来，点击此按钮可以展开/折叠导航链接。
+        data-bs-toggle: 指定触发的动作是折叠（collapse）。
+        data-bs-target: 指定折叠的目标元素，这里是id为"navbarNav"的div。
+        aria-controls: 屏幕阅读器使用的属性，指定控制的元素id。
+        aria-expanded: 屏幕阅读器使用的属性，表示目标元素当前是否展开。
+        aria-label: 屏幕阅读器使用的属性，为按钮提供描述性标签。
+      -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <!--
+        导航链接的容器。
+        当屏幕尺寸较大时，导航链接会水平排列。
+        当屏幕尺寸较小时，导航链接会折叠起来，点击折叠按钮后展开。
+        使用Bootstrap的类来实现响应式布局。
+      -->
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <!--
+          导航链接列表。
+          使用Bootstrap的类来设置导航链接的样式。
+          me-auto: 将导航链接推到左侧，使右侧的navbar-text靠右对齐。
+          mb-2 mb-lg-0: 在小屏幕上添加底部外边距，在大屏幕上移除底部外边距。
+        -->
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <!-- 主页链接 -->
+          <li class="nav-item">
+            <a class="nav-link" th:href="@{/index}"><i class="fas fa-home"></i> 主页</a>
+          </li>
+          <!-- 上传视频链接 -->
+          <li class="nav-item">
+            <a class="nav-link" th:href="@{/upload}"><i class="fas fa-upload"></i> 上传视频</a>
+          </li>
+          <!-- 文本翻译链接 -->
+          <li class="nav-item">
+            <a class="nav-link" th:href="@{/SimpleTranslation}"><i class="fas fa-language"></i> 文本翻译</a>
+          </li>
+          <!-- 账户充值链接 -->
+          <li class="nav-item">
+            <a class="nav-link" th:href="@{/topup}"><i class="fas fa-credit-card"></i> 账户充值</a>
+          </li>
+        </ul>
+        <!--
+          用户认证信息显示区域。
+          包含了用户名、余额和登出链接。
+          使用Bootstrap的类来实现样式和布局。
+          d-flex: 使用Flexbox布局。
+          align-items-center: 垂直居中对齐。
+        -->
+        <div class="navbar-text d-flex align-items-center">
+          <!-- 显示用户名 -->
+          <span class="me-3">你好, <span th:text="${username}">用户</span>!</span>
+          <!--
+            显示用户余额。
+            如果userBalance不为空，则使用#numbers.formatDecimal格式化数字，保留两位小数。
+            如果userBalance为空，则显示"0.00"。
+            #numbers.formatDecimal是Thymeleaf的内置对象，用于格式化数字。
+            me-3: 添加右侧外边距。
+          -->
+          <span class="me-3">余额: ¥<span
+              th:text="${userBalance != null ? #numbers.formatDecimal(userBalance, 1, 2) : '0.00'}">0.00</span></span>
+
+          <!-- 登出链接 -->
+          <a th:href="@{/logout}" class="btn btn-outline-light btn-sm">
+            <i class="fas fa-sign-out-alt"></i> 登出
+          </a>
         </div>
+      </div>
     </div>
-</nav>
+  </nav>
 </body>
+
 </html>

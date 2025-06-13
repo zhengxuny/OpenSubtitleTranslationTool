@@ -1,57 +1,109 @@
-<!-- src/main/resources/templates/admin/user-management.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>用户管理</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/admin-common.css"> <!-- 公共样式 -->
+  <title>用户管理</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/admin-common.css">
 </head>
 <body>
-<div th:replace="~{fragments/admin-navbar :: admin-navbar}"></div>
+  <!-- 引入公共的导航栏片段 -->
+  <div th:replace="~{fragments/admin-navbar :: admin-navbar}"></div>
 
-<div class="container admin-container mt-5"> <!-- 使用公共容器类 -->
+  <!--
+    主要的容器，包含了用户管理的所有内容。
+    使用了Bootstrap的container类来实现响应式布局，并添加了admin-container类用于自定义样式。
+    mt-5 类用于添加顶部外边距，使内容与导航栏之间有一定间距。
+  -->
+  <div class="container admin-container mt-5">
+    <!--
+      页面标题和新增用户按钮的容器。
+      使用了Bootstrap的d-flex类来实现Flexbox布局，使标题和按钮位于同一行并两端对齐。
+      align-items-center 类用于垂直居中对齐。
+      mb-4 类用于添加底部外边距，使标题和按钮与表格之间有一定间距。
+    -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="mb-0">用户管理</h1>
-        <a href="/admin/users/add" class="btn btn-primary">
-            <i class="fas fa-user-plus me-2"></i> 新增用户
-        </a>
+      <!-- 页面标题 -->
+      <h1 class="mb-0">用户管理</h1>
+      <!--
+        新增用户按钮。
+        使用了Bootstrap的btn类来设置按钮样式，并使用btn-primary类来设置主要颜色。
+        href 属性指定了点击按钮后跳转的URL。
+      -->
+      <a href="/admin/users/add" class="btn btn-primary">
+        <i class="fas fa-user-plus me-2"></i>
+        新增用户
+      </a>
     </div>
 
-    <table class="table table-striped admin-table"> <!-- 使用公共表格类 -->
-        <thead class="bg-primary text-white"> <!-- 表头主题色 -->
-            <tr>
-                <th>ID</th>
-                <th>用户名</th>
-                <th>邮箱</th>
-                <th>余额</th>
-                <th>注册时间</th>
-                <th>操作</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="user : ${users}">
-                <td th:text="${user.id}"></td>
-                <td th:text="${user.username}"></td>
-                <td th:text="${user.email}"></td>
-                <td>¥<span th:text="${user.balance}"></span></td>
-                <td th:text="${#temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
-                <td>
-                    <a th:href="'/admin/users/edit/' + ${user.id}" class="btn btn-sm btn-outline-warning me-2">
-                        <i class="fas fa-edit me-1"></i> 编辑
-                    </a>
-                    <a th:href="'/admin/users/delete/' + ${user.id}" class="btn btn-sm btn-outline-danger"
-                       onclick="return confirm('确定要删除该用户吗？删除后数据不可恢复！')">
-                        <i class="fas fa-trash me-1"></i> 删除
-                    </a>
-                </td>
-            </tr>
-        </tbody>
+    <!--
+      用户列表的表格。
+      使用了Bootstrap的table类来设置表格样式，并使用table-striped类来使表格具有条纹效果。
+      admin-table 类用于自定义表格样式。
+    -->
+    <table class="table table-striped admin-table">
+      <!-- 表头 -->
+      <thead class="bg-primary text-white">
+        <tr>
+          <th>ID</th>
+          <th>用户名</th>
+          <th>邮箱</th>
+          <th>余额</th>
+          <th>注册时间</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <!-- 表格主体 -->
+      <tbody>
+        <!--
+          循环遍历用户列表，并为每个用户创建一个表格行。
+          th:each 属性用于循环遍历 users 列表，并将每个用户对象赋值给 user 变量。
+        -->
+        <tr th:each="user : ${users}">
+          <!-- 用户ID -->
+          <td th:text="${user.id}"></td>
+          <!-- 用户名 -->
+          <td th:text="${user.username}"></td>
+          <!-- 邮箱 -->
+          <td th:text="${user.email}"></td>
+          <!-- 余额 -->
+          <td>¥<span th:text="${user.balance}"></span></td>
+          <!-- 注册时间 -->
+          <td th:text="${#temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+          <!-- 操作 -->
+          <td>
+            <!--
+              编辑按钮。
+              使用了Bootstrap的btn类来设置按钮样式，并使用btn-sm类来设置小尺寸。
+              btn-outline-warning 类用于设置警告色的轮廓样式。
+              me-2 类用于添加右侧外边距，使按钮之间有一定间距。
+              th:href 属性指定了点击按钮后跳转的URL，其中 ${user.id} 用于动态生成URL。
+            -->
+            <a th:href="'/admin/users/edit/' + ${user.id}" class="btn btn-sm btn-outline-warning me-2">
+              <i class="fas fa-edit me-1"></i>
+              编辑
+            </a>
+            <!--
+              删除按钮。
+              使用了Bootstrap的btn类来设置按钮样式，并使用btn-sm类来设置小尺寸。
+              btn-outline-danger 类用于设置危险色的轮廓样式。
+              th:href 属性指定了点击按钮后跳转的URL，其中 ${user.id} 用于动态生成URL。
+              onclick 属性用于在点击按钮时弹出一个确认对话框。
+            -->
+            <a th:href="'/admin/users/delete/' + ${user.id}" class="btn btn-sm btn-outline-danger"
+               onclick="return confirm('确定要删除该用户吗？删除后数据不可恢复！')">
+              <i class="fas fa-trash me-1"></i>
+              删除
+            </a>
+          </td>
+        </tr>
+      </tbody>
     </table>
-</div>
+  </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- 引入Bootstrap的JavaScript文件 -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

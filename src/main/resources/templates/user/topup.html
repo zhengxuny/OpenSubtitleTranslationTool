@@ -1,156 +1,200 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <title>账户充值</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- 1. 引入共享主题和全局CSS -->
-    <link rel="stylesheet" th:href="@{/static/css/theme.css}">
-    <link rel="stylesheet" th:href="@{/static/css/global.css}">
-    <style>
-        /* --- Page-Specific Styles for Top-up Form --- */
+  <title>账户充值</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" th:href="@{/static/css/theme.css}">
+  <link rel="stylesheet" th:href="@{/static/css/global.css}">
+  <style>
+    /* --- Page-Specific Styles for Top-up Form --- */
 
-        .card.card-translucent {
-            background-color: rgba(255, 255, 255, 0);
-            border: none;
-            box-shadow: none !important;
-            border-radius: 8px;
-        }
-        .card.card-translucent .card-body {
-            background-color: transparent;
-            color: #f0f0f0;
-        }
-
-        /* 样式化表单元素 */
-        .form-label {
-            color: #ffffff;
-            font-weight: 500;
-        }
-        .form-control {
-            background-color: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: #ffffff;
-        }
-        .form-control:focus {
-            background-color: rgba(0, 0, 0, 0.4);
-            border-color: #a0d8ff;
-            color: #ffffff;
-            box-shadow: 0 0 0 0.25rem rgba(160, 216, 255, 0.25);
-        }
-        .form-control::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        /* 样式化输入框前的 "¥" 符号 */
-        .input-group-text {
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: #ffffff;
-        }
-
-        /* 样式化提示信息区域 */
-        #topupMessage .alert {
-            border: 1px solid;
-            color: #ffffff;
-        }
-        #topupMessage .alert-success {
-            background-color: rgba(25, 135, 84, 0.3); /* 半透明的成功绿 */
-            border-color: rgba(25, 135, 84, 0.5);
-            color: #a3e9c6; /* 更亮的绿色文本，提高可读性 */
-        }
-        #topupMessage .alert-danger {
-            background-color: rgba(220, 53, 69, 0.3); /* 半透明的危险红 */
-            border-color: rgba(220, 53, 69, 0.5);
-            color: #f8aeae;
-        }
-    </style>
-</head>
-<body>
-<!-- 2. 添加视频背景 -->
-<video class="video-background" th:src="@{/static/video/ingame.mp4}" loop muted autoplay preload="auto"></video>
-
-<div th:replace="~{fragments/navbar :: navbar}"></div>
-
-<!-- 3. 为 container 添加 themed-container 类 -->
-<div class="container themed-container mt-4">
-
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <!-- 3. 为 card 添加 card-translucent 类 -->
-            <div class="card card-translucent">
-                <div class="card-body p-4">
-                    <form id="topUpForm">
-                        <div class="mb-3">
-                            <label for="amount" class="form-label">充值金额（元）:</label>
-                            <div class="input-group">
-                                <span class="input-group-text">¥</span>
-                                <input type="number" step="0.01" id="amount" name="amount" class="form-control" required placeholder="例如: 10.00">
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-success w-100" onclick="submitTopUp()">
-                            <i class="fas fa-check-circle"></i> 确认充值
-                        </button>
-                    </form>
-
-                    <div id="topupMessage" class="mt-3">
-                        <!-- Messages will be injected here by JavaScript or Thymeleaf -->
-                        <div th:if="${param.success}" class="alert alert-success">充值成功！您的余额已更新。</div>
-                        <div th:if="${param.error}" class="alert alert-danger">充值失败，请检查金额是否合法或稍后再试。</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
-<script>
-    function submitTopUp() {
-        const amountInput = document.getElementById('amount');
-        const amount = amountInput.value;
-        const messageDiv = document.getElementById('topupMessage');
-        messageDiv.innerHTML = ''; // Clear previous messages
-
-        if (!amount || parseFloat(amount) <= 0) {
-            messageDiv.innerHTML = '<div class="alert alert-danger">请输入有效的充值金额。</div>';
-            return;
-        }
-
-        // Optional: Disable button during request
-        const button = document.querySelector('#topUpForm button');
-        button.disabled = true;
-        button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 处理中...';
-
-
-        axios.post('/api/auth/topup', {
-            amount: parseFloat(amount)
-        }, {
-            headers: { 'Content-Type': 'application/json' }
-        })
-            .then(response => {
-                // Redirecting clears the current page context, so success message will be shown by Thymeleaf param
-                window.location.href = '/topup?success=true'; // Use a boolean true
-            })
-            .catch(error => {
-                // Similarly, 404.html message shown by Thymeleaf param
-                window.location.href = '/topup?error=true';
-                // For more specific client-side 404.html:
-                // let errorMsg = '充值失败，请稍后再试。';
-                // if (404.html.response && 404.html.response.data && 404.html.response.data.message) {
-                //     errorMsg = 404.html.response.data.message;
-                // }
-                // messageDiv.innerHTML = `<div class="alert alert-danger">${errorMsg}</div>`;
-            })
-            .finally(() => {
-                // Re-enable button (only if not redirecting immediately, but for this example redirect is used)
-                // button.disabled = false;
-                // button.innerHTML = '<i class="fas fa-check-circle"></i> 确认充值';
-            });
+    .card.card-translucent {
+      background-color: rgba(255, 255, 255, 0);
+      border: none;
+      box-shadow: none !important;
+      border-radius: 8px;
     }
-</script>
+
+    .card.card-translucent .card-body {
+      background-color: transparent;
+      color: #f0f0f0;
+    }
+
+    /* 样式化表单元素 */
+    .form-label {
+      color: #ffffff;
+      font-weight: 500;
+    }
+
+    .form-control {
+      background-color: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+    }
+
+    .form-control:focus {
+      background-color: rgba(0, 0, 0, 0.4);
+      border-color: #a0d8ff;
+      color: #ffffff;
+      box-shadow: 0 0 0 0.25rem rgba(160, 216, 255, 0.25);
+    }
+
+    .form-control::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* 样式化输入框前的 "¥" 符号 */
+    .input-group-text {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+    }
+
+    /* 样式化提示信息区域 */
+    #topupMessage .alert {
+      border: 1px solid;
+      color: #ffffff;
+    }
+
+    #topupMessage .alert-success {
+      background-color: rgba(25, 135, 84, 0.3);
+      /* 半透明的成功绿 */
+      border-color: rgba(25, 135, 84, 0.5);
+      color: #a3e9c6;
+      /* 更亮的绿色文本，提高可读性 */
+    }
+
+    #topupMessage .alert-danger {
+      background-color: rgba(220, 53, 69, 0.3);
+      /* 半透明的危险红 */
+      border-color: rgba(220, 53, 69, 0.5);
+      color: #f8aeae;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 视频背景 -->
+  <video class="video-background" th:src="@{/static/video/ingame.mp4}" loop muted autoplay preload="auto"></video>
+
+  <!-- 导航栏 -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <!-- 主容器 -->
+  <div class="container themed-container mt-4">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <!-- 充值卡片 -->
+        <div class="card card-translucent">
+          <div class="card-body p-4">
+            <!-- 充值表单 -->
+            <form id="topUpForm">
+              <div class="mb-3">
+                <label for="amount" class="form-label">充值金额（元）:</label>
+                <div class="input-group">
+                  <span class="input-group-text">¥</span>
+                  <!-- 金额输入框 -->
+                  <input type="number" step="0.01" id="amount" name="amount" class="form-control" required
+                    placeholder="例如: 10.00">
+                </div>
+              </div>
+              <!-- 提交按钮 -->
+              <button type="button" class="btn btn-success w-100" onclick="submitTopUp()">
+                <i class="fas fa-check-circle"></i> 确认充值
+              </button>
+            </form>
+
+            <!-- 消息显示区域 -->
+            <div id="topupMessage" class="mt-3">
+              <!-- 如果 URL 中包含 success 参数，则显示成功消息 -->
+              <div th:if="${param.success}" class="alert alert-success">充值成功！您的余额已更新。</div>
+              <!-- 如果 URL 中包含 error 参数，则显示错误消息 -->
+              <div th:if="${param.error}" class="alert alert-danger">充值失败，请检查金额是否合法或稍后再试。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 引入Popper.js，用于支持Bootstrap的某些组件 -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js"></script>
+  <!-- 引入Bootstrap JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+  <script>
+    /**
+     * @description 提交充值请求
+     *
+     * 该函数用于处理用户提交的充值金额，并向服务器发送充值请求。
+     * 首先，它会获取用户输入的金额，并进行验证。
+     * 如果金额无效（为空或小于等于0），则会显示错误消息。
+     * 然后，禁用提交按钮，并显示加载动画，防止用户重复提交。
+     * 接下来，使用 Axios 发送 POST 请求到服务器的 /api/auth/topup 接口，
+     * 传递充值金额。
+     * 如果请求成功，页面将重定向到 /topup?success=true，
+     * 服务器会通过 Thymeleaf 显示充值成功的消息。
+     * 如果请求失败，页面将重定向到 /topup?error=true，
+     * 服务器会通过 Thymeleaf 显示充值失败的消息。
+     * 最后，无论请求成功与否，都会重新启用提交按钮，并恢复其原始文本。
+     */
+    function submitTopUp() {
+      // 获取金额输入框元素
+      const amountInput = document.getElementById('amount');
+      // 获取用户输入的金额
+      const amount = amountInput.value;
+      // 获取消息显示区域元素
+      const messageDiv = document.getElementById('topupMessage');
+      // 清空之前的消息
+      messageDiv.innerHTML = '';
+
+      // 验证金额是否有效
+      if (!amount || parseFloat(amount) <= 0) {
+        // 如果金额无效，则显示错误消息
+        messageDiv.innerHTML = '<div class="alert alert-danger">请输入有效的充值金额。</div>';
+        return; // 停止执行
+      }
+
+      // 获取提交按钮元素
+      const button = document.querySelector('#topUpForm button');
+      // 禁用按钮，防止重复提交
+      button.disabled = true;
+      // 显示加载动画
+      button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 处理中...';
+
+      // 使用 Axios 发送 POST 请求到服务器
+      axios.post('/api/auth/topup', {
+          amount: parseFloat(amount) // 将金额转换为浮点数
+        }, {
+          headers: {
+            'Content-Type': 'application/json'
+          } // 设置请求头
+        })
+        .then(response => {
+          // 请求成功，重定向到成功页面
+          window.location.href = '/topup?success=true'; // 使用布尔值 true
+        })
+        .catch(error => {
+          // 请求失败，重定向到错误页面
+          window.location.href = '/topup?error=true';
+          // 备选方案：客户端处理错误消息
+          // let errorMsg = '充值失败，请稍后再试。';
+          // if (error.response && error.response.data && error.response.data.message) {
+          //     errorMsg = error.response.data.message;
+          // }
+          // messageDiv.innerHTML = `<div class="alert alert-danger">${errorMsg}</div>`;
+        })
+        .finally(() => {
+          // 无论请求成功与否，都重新启用按钮
+          // button.disabled = false;
+          // button.innerHTML = '<i class="fas fa-check-circle"></i> 确认充值';
+        });
+    }
+  </script>
 </body>
+
 </html>

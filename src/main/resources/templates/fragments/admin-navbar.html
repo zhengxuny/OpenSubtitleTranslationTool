@@ -1,31 +1,106 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"> <!-- 添加Spring Security方言命名空间 -->
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<!--
+  此片段定义了管理后台的导航栏。
+  它使用了Thymeleaf模板引擎来动态生成HTML内容，并集成了Spring Security以进行安全控制。
+  导航栏包含指向管理主页、用户管理和任务管理的链接，以及一个显示当前管理员用户名和登出链接的区域。
+-->
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" th:fragment="admin-navbar">
+    <!--
+      导航栏的主要容器。
+      navbar-expand-lg 类使其在大型屏幕上水平展开，navbar-dark 和 bg-primary 类设置深色主题和背景颜色。
+      fixed-top 类使其固定在页面顶部。
+      th:fragment="admin-navbar" 定义了此片段的名称，以便在其他模板中引用。
+    -->
     <div class="container-fluid">
+        <!--
+          容器，用于限制导航栏内容的宽度。
+        -->
         <a class="navbar-brand" th:href="@{/admin/index}">管理后台</a>
+        <!--
+          导航栏的品牌标识，链接到管理主页。
+          th:href="@{/admin/index}" 使用Thymeleaf生成指向 /admin/index 的URL。
+        -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbarNav" aria-controls="adminNavbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <!--
+              在小屏幕上显示的导航栏切换按钮。
+              data-bs-toggle="collapse" 和 data-bs-target="#adminNavbarNav" 用于控制导航栏的折叠和展开。
+            -->
             <span class="navbar-toggler-icon"></span>
+            <!--
+              切换按钮的图标。
+            -->
         </button>
         <div class="collapse navbar-collapse" id="adminNavbarNav">
+            <!--
+              导航栏的折叠内容区域。
+              collapse 和 navbar-collapse 类使其在小屏幕上折叠，在大屏幕上展开。
+              id="adminNavbarNav" 与切换按钮的 data-bs-target 属性匹配。
+            -->
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <!--
+                  导航链接的无序列表。
+                  me-auto 类使其向左对齐，mb-2 和 mb-lg-0 类设置边距。
+                -->
                 <li class="nav-item">
+                    <!--
+                      导航链接的列表项。
+                    -->
                     <a class="nav-link" th:href="@{/admin/index}"><i class="fas fa-home"></i> 管理主页</a>
+                    <!--
+                      链接到管理主页。
+                      nav-link 类设置链接的样式。
+                      th:href="@{/admin/index}" 使用Thymeleaf生成指向 /admin/index 的URL。
+                      <i class="fas fa-home"></i> 添加一个Font Awesome的home图标。
+                    -->
                 </li>
                 <li class="nav-item">
+                    <!--
+                      导航链接的列表项。
+                    -->
                     <a class="nav-link" th:href="@{/admin/users}"><i class="fas fa-users"></i> 用户管理</a>
+                    <!--
+                      链接到用户管理页面。
+                      nav-link 类设置链接的样式。
+                      th:href="@{/admin/users}" 使用Thymeleaf生成指向 /admin/users 的URL。
+                      <i class="fas fa-users"></i> 添加一个Font Awesome的users图标。
+                    -->
                 </li>
                 <li class="nav-item">
+                    <!--
+                      导航链接的列表项。
+                    -->
                     <a class="nav-link" th:href="@{/admin/tasks}"><i class="fas fa-tasks"></i> 任务管理</a>
+                    <!--
+                      链接到任务管理页面。
+                      nav-link 类设置链接的样式。
+                      th:href="@{/admin/tasks}" 使用Thymeleaf生成指向 /admin/tasks 的URL。
+                      <i class="fas fa-tasks"></i> 添加一个Font Awesome的tasks图标。
+                    -->
                 </li>
             </ul>
             <div class="navbar-text d-flex align-items-center">
-                <!-- 使用Thymeleaf的th:text属性显示用户名 -->
+                <!--
+                  导航栏中的文本区域，用于显示管理员信息和登出链接。
+                  navbar-text 类设置文本的样式，d-flex 和 align-items-center 类使其水平居中对齐。
+                -->
                 <span class="me-3">管理员: <span th:text="${adminName ?: '管理员'}">admin</span></span>
+                <!--
+                  显示当前管理员的用户名。
+                  me-3 类设置右边距。
+                  th:text="${adminName ?: '管理员'}" 使用Thymeleaf显示 adminName 变量的值，如果该变量为空，则显示 "管理员"。
+                -->
                 <a th:href="@{/logout}" class="btn btn-outline-light btn-sm">
                     <i class="fas fa-sign-out-alt"></i> 登出
                 </a>
+                <!--
+                  登出链接。
+                  th:href="@{/logout}" 使用Thymeleaf生成指向 /logout 的URL。
+                  btn、btn-outline-light 和 btn-sm 类设置按钮的样式。
+                  <i class="fas fa-sign-out-alt"></i> 添加一个Font Awesome的sign-out-alt图标。
+                -->
             </div>
         </div>
     </div>

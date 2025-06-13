@@ -1,108 +1,131 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <title>字幕翻译工具</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- 引入共享主题CSS -->
-    <link rel="stylesheet" th:href="@{/static/css/theme.css}">
-    <!-- 引入全局CSS (如果还有其他全局样式) -->
-    <link rel="stylesheet" th:href="@{/static/css/global.css}">
-    <style>
-        /* --- Page-Specific Styles for Video List Table --- */
+  <title>字幕翻译工具</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <!-- 引入共享主题CSS -->
+  <link rel="stylesheet" th:href="@{/static/css/theme.css}">
+  <!-- 引入全局CSS (如果还有其他全局样式) -->
+  <link rel="stylesheet" th:href="@{/static/css/global.css}">
+  <style>
+    /* --- Page-Specific Styles for Video List Table --- */
 
-        .table-translucent {
-            --bs-table-bg: transparent;
-            --bs-table-striped-bg: rgba(255, 255, 255, 0.05);
-            --bs-table-hover-bg: rgba(255, 255, 255, 0.1);
-            --bs-table-color: #f0f0f0;
-            --bs-table-border-color: rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            overflow: hidden;
-        }
+    .table-translucent {
+      --bs-table-bg: transparent;
+      --bs-table-striped-bg: rgba(255, 255, 255, 0.05);
+      --bs-table-hover-bg: rgba(255, 255, 255, 0.1);
+      --bs-table-color: #f0f0f0;
+      --bs-table-border-color: rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      overflow: hidden;
+    }
 
-        .table-translucent thead.table-light {
-            --bs-table-bg: rgba(255, 255, 255, 0.1);
-            --bs-table-color: #ffffff;
-        }
+    .table-translucent thead.table-light {
+      --bs-table-bg: rgba(255, 255, 255, 0.1);
+      --bs-table-color: #ffffff;
+    }
 
-        .table-translucent th {
-            font-weight: 600;
-        }
+    .table-translucent th {
+      font-weight: 600;
+    }
 
-        /* 链接颜色已由 theme.css 中的 a 标签全局定义，如果需要特殊颜色可在此处覆盖 */
-        /* .table-translucent a { color: #a0d8ff; } */
+    /* 链接颜色已由 theme.css 中的 a 标签全局定义，如果需要特殊颜色可在此处覆盖 */
+    /* .table-translucent a { color: #a0d8ff; } */
 
-        .table-translucent .text-success { color: #4ade80 !important; }
-        .table-translucent .text-danger { color: #f87171 !important; }
-        .table-translucent .text-muted { color: rgba(255, 255, 255, 0.6) !important; }
+    .table-translucent .text-success {
+      color: #4ade80 !important;
+    }
 
-        .alert-info {
-            background-color: rgba(23, 162, 184, 0.2);
-            border-color: rgba(23, 162, 184, 0.4);
-            color: #ffffff;
-        }
-        .alert-info .alert-link {
-            font-weight: bold;
-        }
-    </style>
+    .table-translucent .text-danger {
+      color: #f87171 !important;
+    }
+
+    .table-translucent .text-muted {
+      color: rgba(255, 255, 255, 0.6) !important;
+    }
+
+    .alert-info {
+      background-color: rgba(23, 162, 184, 0.2);
+      border-color: rgba(23, 162, 184, 0.4);
+      color: #ffffff;
+    }
+
+    .alert-info .alert-link {
+      font-weight: bold;
+    }
+  </style>
 </head>
+
 <body>
-<!-- 添加视频背景 -->
-<video class="video-background" th:src="@{/static/video/ingame.mp4}" loop muted autoplay preload="auto"></video>
+  <!-- 视频背景元素 -->
+  <video class="video-background" th:src="@{/static/video/ingame.mp4}" loop muted autoplay preload="auto"></video>
 
-<div th:replace="~{fragments/navbar :: navbar}"></div>
+  <!-- 导航栏片段 -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<!-- 为 container 添加 themed-container 类 -->
-<div class="container themed-container mt-4">
+  <!-- 主内容容器 -->
+  <div class="container themed-container mt-4">
+    <!-- 页面标题 -->
     <h1 class="mb-4">欢迎，<span th:text="${username}"></span>！</h1>
 
+    <!-- 上传视频按钮和标题 -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>您上传的视频</h2>
-        <a href="/upload" class="btn btn-secondary"><i class="fas fa-plus"></i> 上传新视频</a>
+      <h2>您上传的视频</h2>
+      <a href="/upload" class="btn btn-secondary"><i class="fas fa-plus"></i> 上传新视频</a>
     </div>
 
+    <!-- 如果没有上传任务，则显示提示信息 -->
     <div th:if="${tasks.empty}" class="alert alert-info">
-        <p class="mb-1">未找到已上传的视频。</p>
-        <p>点击<a href="/upload" class="alert-link">此处</a>开始上传视频。</p>
+      <p class="mb-1">未找到已上传的视频。</p>
+      <p>点击<a href="/upload" class="alert-link">此处</a>开始上传视频。</p>
     </div>
 
+    <!-- 如果有上传任务，则显示视频列表 -->
     <div class="table-responsive" th:if="${!tasks.empty}">
-        <table class="table table-striped table-hover table-translucent">
-            <!-- 表格内容保持不变 -->
-            <thead class="table-light">
-            <tr>
-                <th>原文件名</th>
-                <th>状态</th>
-                <th>上传时间</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="task : ${tasks}">
-                <td>
-                    <a th:href="'/video-details/' + ${task.id}"
-                       th:text="${task.originalVideoFilename}">
-                        示例视频.mp4
-                    </a>
-                </td>
-                <td>
-                    <span th:text="${task.status.displayName ?: task.status.name()}"
-                          th:classappend="${task.status.name() == 'COMPLETED' ? 'text-success' : (task.status.name() == 'FAILED' ? 'text-danger' : 'text-muted')}">
-                        处理中
-                    </span>
-                </td>
-                <td th:text="${#temporals.format(task.createdAt, 'yyyy-MM-dd HH:mm')}">
-                    2024-03-15 14:30
-                </td>
-            </tr>
-            </tbody>
-        </table>
+      <table class="table table-striped table-hover table-translucent">
+        <!-- 表格头部 -->
+        <thead class="table-light">
+          <tr>
+            <th>原文件名</th>
+            <th>状态</th>
+            <th>上传时间</th>
+          </tr>
+        </thead>
+        <!-- 表格主体 -->
+        <tbody>
+          <!-- 循环遍历每个任务 -->
+          <tr th:each="task : ${tasks}">
+            <!-- 文件名，点击可跳转到视频详情页 -->
+            <td>
+              <a th:href="'/video-details/' + ${task.id}" th:text="${task.originalVideoFilename}">
+                示例视频.mp4
+              </a>
+            </td>
+            <!-- 任务状态，根据状态显示不同的文本和颜色 -->
+            <td>
+              <span th:text="${task.status.displayName ?: task.status.name()}"
+                th:classappend="${task.status.name() == 'COMPLETED' ? 'text-success' : (task.status.name() == 'FAILED' ? 'text-danger' : 'text-muted')}">
+                处理中
+              </span>
+            </td>
+            <!-- 上传时间，格式化为 yyyy-MM-dd HH:mm -->
+            <td th:text="${#temporals.format(task.createdAt, 'yyyy-MM-dd HH:mm')}">
+              2024-03-15 14:30
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-</div>
+  </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+  <!-- 引入Popper.js，用于支持Bootstrap的弹出框、提示框等组件 -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js"></script>
+  <!-- 引入Bootstrap JavaScript，用于支持Bootstrap的各种组件和功能 -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 </body>
+
 </html>

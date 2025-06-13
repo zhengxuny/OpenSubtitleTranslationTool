@@ -1,69 +1,160 @@
-<!-- src/main/resources/templates/admin/task-management.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>任务管理</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/admin-common.css"> <!-- 公共样式 -->
+  <title>任务管理</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/admin-common.css">
+</head>
 <body>
-<div th:replace="~{fragments/admin-navbar :: admin-navbar}"></div>
+  <!-- 引入公共的导航栏片段 -->
+  <div th:replace="~{fragments/admin-navbar :: admin-navbar}"></div>
 
-<div class="container admin-container mt-5"> <!-- 使用公共容器类 + 导航栏偏移 -->
+  <!--
+    主容器，包含任务管理的所有内容。
+    使用了Bootstrap的container类来实现响应式布局，并添加了admin-container类用于自定义样式。
+    mt-5类用于添加顶部外边距，使内容与导航栏之间有一定间距。
+  -->
+  <div class="container admin-container mt-5">
+    <!--
+      页面标题和搜索框的容器，使用了Flexbox布局。
+      d-flex：启用Flexbox布局。
+      justify-content-between：使标题和搜索框分别位于容器的两端。
+      align-items-center：使标题和搜索框在垂直方向上居中对齐。
+      mb-4：添加底部外边距，使标题和搜索框与下方的表格之间有一定间距。
+    -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="mb-0">任务管理</h1>
-        <!-- 搜索框新增图标 -->
-        <form th:action="@{/admin/tasks}" method="get" class="d-flex gap-2">
-            <div class="input-group">
-                <span class="input-group-text"><i class="fas fa-user"></i></span>
-                <select class="form-select" name="userId">
-                    <option value="">所有用户</option>
-                    <option th:each="user : ${users}" th:value="${user.id}" th:text="${user.username}"></option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary d-flex align-items-center justify-content-center">
-                <i class="fas fa-filter me-2"></i>
-                <span>筛选</span>
-            </button>
-        </form>
+      <!-- 页面标题 -->
+      <h1 class="mb-0">任务管理</h1>
+
+      <!--
+        搜索表单，用于筛选任务。
+        th:action="@{/admin/tasks}"：指定表单提交的URL。
+        method="get"：指定表单提交的方法为GET。
+        class="d-flex gap-2"：使用Flexbox布局，并设置子元素之间的间距。
+      -->
+      <form th:action="@{/admin/tasks}" method="get" class="d-flex gap-2">
+        <!--
+          包含用户选择框的输入组。
+          input-group：Bootstrap的输入组组件，用于将多个元素组合在一起。
+        -->
+        <div class="input-group">
+          <!--
+            输入组的前缀图标。
+            input-group-text：设置背景色和边框样式。
+            <i class="fas fa-user"></i>：Font Awesome的用户图标。
+          -->
+          <span class="input-group-text"><i class="fas fa-user"></i></span>
+
+          <!--
+            用户选择框。
+            form-select：Bootstrap的选择框样式。
+            name="userId"：指定选择框的name属性，用于表单提交。
+          -->
+          <select class="form-select" name="userId">
+            <!--
+              默认选项，显示“所有用户”。
+              value=""：指定选项的值为空字符串，表示未选择任何用户。
+            -->
+            <option value="">所有用户</option>
+
+            <!--
+              循环遍历用户列表，生成用户选项。
+              th:each="user : ${users}"：循环遍历名为users的列表，每次循环将当前用户赋值给变量user。
+              th:value="${user.id}"：设置选项的值为用户的ID。
+              th:text="${user.username}"：设置选项的文本为用户的用户名。
+            -->
+            <option th:each="user : ${users}" th:value="${user.id}" th:text="${user.username}"></option>
+          </select>
+        </div>
+
+        <!--
+          提交按钮，用于提交搜索表单。
+          type="submit"：指定按钮的类型为提交按钮。
+          class="btn btn-primary"：Bootstrap的主题按钮样式。
+          d-flex align-items-center justify-content-center"：使用Flexbox布局，使图标和文本在按钮中居中对齐。
+        -->
+        <button type="submit" class="btn btn-primary d-flex align-items-center justify-content-center">
+          <!--
+            筛选图标。
+            <i class="fas fa-filter me-2"></i>：Font Awesome的筛选图标，me-2用于添加右侧外边距。
+          -->
+          <i class="fas fa-filter me-2"></i>
+          <!-- 按钮文本 -->
+          <span>筛选</span>
+        </button>
+      </form>
     </div>
 
-    <table class="table table-striped admin-table"> <!-- 使用公共表格类 -->
-        <thead class="bg-primary text-white"> <!-- 表头主题色 -->
-            <tr>
-                <th>任务ID</th>
-                <th>原文件名</th>
-                <th>用户</th>
-                <th>状态</th>
-                <th>上传时间</th>
-                <th>操作</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="task : ${tasks}">
-                <td th:text="${task.id}"></td>
-                <td th:text="${task.originalVideoFilename}"></td>
-                <td th:text="${userIdUsernameMap[task.userId]}"></td>
-                <td>
-                    <span class="badge"
-                          th:classappend="${task.status.name() == 'COMPLETED' ? 'bg-success' :
-                                          (task.status.name() == 'FAILED' ? 'bg-danger' : 'bg-secondary')}"
-                          th:text="${task.status.displayName}">
-                    </span>
-                </td>
-                <td th:text="${#temporals.format(task.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
-                <td>
-                    <a th:href="'/admin/tasks/' + ${task.id}" class="btn btn-sm btn-outline-info">
-                        <i class="fas fa-eye me-1"></i> 详情
-                    </a>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+    <!--
+      任务列表表格。
+      table：Bootstrap的表格样式。
+      table-striped：Bootstrap的条纹表格样式，使奇数行和偶数行具有不同的背景色。
+      admin-table：自定义的表格样式。
+    -->
+    <table class="table table-striped admin-table">
+      <!-- 表头 -->
+      <thead class="bg-primary text-white">
+        <tr>
+          <th>任务ID</th>
+          <th>原文件名</th>
+          <th>用户</th>
+          <th>状态</th>
+          <th>上传时间</th>
+          <th>操作</th>
+        </tr>
+      </thead>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+      <!-- 表体 -->
+      <tbody>
+        <!--
+          循环遍历任务列表，生成任务行。
+          th:each="task : ${tasks}"：循环遍历名为tasks的列表，每次循环将当前任务赋值给变量task。
+        -->
+        <tr th:each="task : ${tasks}">
+          <!-- 任务ID -->
+          <td th:text="${task.id}"></td>
+          <!-- 原始视频文件名 -->
+          <td th:text="${task.originalVideoFilename}"></td>
+          <!-- 用户名 -->
+          <td th:text="${userIdUsernameMap[task.userId]}"></td>
+          <!--
+            任务状态。
+            badge：Bootstrap的徽章样式，用于显示状态。
+            th:classappend：根据任务状态动态添加CSS类。
+          -->
+          <td>
+            <span class="badge"
+                  th:classappend="${task.status.name() == 'COMPLETED' ? 'bg-success' :
+                                  (task.status.name() == 'FAILED' ? 'bg-danger' : 'bg-secondary')}"
+                  th:text="${task.status.displayName}">
+            </span>
+          </td>
+          <!-- 上传时间 -->
+          <td th:text="${#temporals.format(task.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+          <!-- 操作 -->
+          <td>
+            <!--
+              详情链接。
+              th:href="'/admin/tasks/' + ${task.id}"：设置链接的URL，指向任务详情页面。
+              class="btn btn-sm btn-outline-info"：Bootstrap的按钮样式。
+            -->
+            <a th:href="'/admin/tasks/' + ${task.id}" class="btn btn-sm btn-outline-info">
+              <!--
+                详情图标。
+                <i class="fas fa-eye me-1"></i>：Font Awesome的眼睛图标，me-1用于添加右侧外边距。
+              -->
+              <i class="fas fa-eye me-1"></i> 详情
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 引入Bootstrap的JavaScript库 -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

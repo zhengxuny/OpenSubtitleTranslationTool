@@ -1,298 +1,514 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <title>视频字幕翻译工具 - 上传</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" th:href="@{/static/css/theme.css}">
-    <link rel="stylesheet" th:href="@{/static/css/global.css}">
-    <style>
-        /* --- Page-Specific Styles for Upload Form --- */
+  <title>视频字幕翻译工具 - 上传</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" th:href="@{/static/css/theme.css}">
+  <link rel="stylesheet" th:href="@{/static/css/global.css}">
+  <style>
+    /* --- Page-Specific Styles for Upload Form --- */
 
-        .card.card-translucent {
-            background-color: rgba(255, 255, 255, 0);
-            border: none;
-            box-shadow: none !important;
-            border-radius: 8px;
-        }
-        .card.card-translucent .card-header,
-        .card.card-translucent .card-body {
-            background-color: transparent;
-            color: #f0f0f0;
-        }
-        .card.card-translucent .card-header {
-            border-bottom: 1px solid rgba(255, 255, 255, 0);
-            font-weight: 600;
-            color: #fff;
-        }
-        .form-label, .form-check-label {
-            color: #ffffff;
-            font-weight: 500;
-        }
-        .form-control {
-            background-color: rgba(0, 0, 0, 0);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: #ffffff;
-        }
-        .form-control:focus {
-            background-color: rgba(0, 0, 0, 0.5);
-            border-color: #a0d8ff;
-            color: #ffffff;
-            box-shadow: 0 0 0 0.25rem rgba(160, 216, 255, 0.25);
-        }
-        .form-control::placeholder { color: rgba(255, 255, 255, 0.6); }
-        .card-body a { color: #a0d8ff; }
-        .card-body a:hover { color: #ffffff; }
+    .card.card-translucent {
+      background-color: rgba(255, 255, 255, 0);
+      border: none;
+      box-shadow: none !important;
+      border-radius: 8px;
+    }
 
-        /* --- Translucent Form Elements (新添加的部分) --- */
+    .card.card-translucent .card-header,
+    .card.card-translucent .card-body {
+      background-color: transparent;
+      color: #f0f0f0;
+    }
 
-        /* 1. 样式化文件选择器的“浏览”按钮 */
-        .form-control::file-selector-button {
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: #ffffff;
-            transition: background-color 0.2s ease-in-out;
-            /* 移除默认的边框，让它与输入框融为一体 */
-            border-top: none;
-            border-left: none;
-            border-bottom: none;
-            margin: -0.375rem -0.75rem; /* Bootstrap 5.3+ a little hacky but works*/
-            margin-inline-end: 0.75rem;
-            padding: 0.375rem 0.75rem;
-        }
+    .card.card-translucent .card-header {
+      border-bottom: 1px solid rgba(255, 255, 255, 0);
+      font-weight: 600;
+      color: #fff;
+    }
 
-        .form-control:hover::file-selector-button {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
+    .form-label,
+    .form-check-label {
+      color: #ffffff;
+      font-weight: 500;
+    }
 
-        /* 2. 样式化复选框 */
-        .form-check-input {
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
-        }
+    .form-control {
+      background-color: rgba(0, 0, 0, 0);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+    }
 
-        .form-check-input:checked {
-            background-color: rgba(13, 110, 253, 0.5); /* 使用半透明的Bootstrap主色调 */
-            border-color: rgba(13, 110, 253, 0.7);
-            /* 使用一个纯白色的SVG作为对勾图标，替换Bootstrap默认的 */
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e");
-        }
+    .form-control:focus {
+      background-color: rgba(0, 0, 0, 0.5);
+      border-color: #a0d8ff;
+      color: #ffffff;
+      box-shadow: 0 0 0 0.25rem rgba(160, 216, 255, 0.25);
+    }
 
-        .form-check-input:focus {
-            border-color: #a0d8ff;
-            box-shadow: 0 0 0 0.25rem rgba(160, 216, 255, 0.25); /* 保持与其他输入框一致的焦点效果 */
-        }
+    .form-control::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
 
-        /* 状态提示框样式 */
-        #statusArea .alert {
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #f0f0f0;
-        }
-        #statusArea .alert-danger {
-            background-color: rgba(220, 53, 69, 0.2);
-            border-color: rgba(220, 53, 69, 0.4);
-            color: #f8aeae;
-        }
-        #statusArea .alert-warning {
-            background-color: rgba(255, 193, 7, 0.2);
-            border-color: rgba(255, 193, 7, 0.4);
-            color: #ffde8a;
-        }
-    </style>
+    .card-body a {
+      color: #a0d8ff;
+    }
+
+    .card-body a:hover {
+      color: #ffffff;
+    }
+
+    /* --- Translucent Form Elements (新添加的部分) --- */
+
+    /* 1. 样式化文件选择器的“浏览”按钮 */
+    .form-control::file-selector-button {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+      transition: background-color 0.2s ease-in-out;
+      /* 移除默认的边框，让它与输入框融为一体 */
+      border-top: none;
+      border-left: none;
+      border-bottom: none;
+      margin: -0.375rem -0.75rem;
+      /* Bootstrap 5.3+ a little hacky but works*/
+      margin-inline-end: 0.75rem;
+      padding: 0.375rem 0.75rem;
+    }
+
+    .form-control:hover::file-selector-button {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* 2. 样式化复选框 */
+    .form-check-input {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+    }
+
+    .form-check-input:checked {
+      background-color: rgba(13, 110, 253, 0.5);
+      /* 使用半透明的Bootstrap主色调 */
+      border-color: rgba(13, 110, 253, 0.7);
+      /* 使用一个纯白色的SVG作为对勾图标，替换Bootstrap默认的 */
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e");
+    }
+
+    .form-check-input:focus {
+      border-color: #a0d8ff;
+      box-shadow: 0 0 0 0.25rem rgba(160, 216, 255, 0.25);
+      /* 保持与其他输入框一致的焦点效果 */
+    }
+
+    /* 状态提示框样式 */
+    #statusArea .alert {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #f0f0f0;
+    }
+
+    #statusArea .alert-danger {
+      background-color: rgba(220, 53, 69, 0.2);
+      border-color: rgba(220, 53, 69, 0.4);
+      color: #f8aeae;
+    }
+
+    #statusArea .alert-warning {
+      background-color: rgba(255, 193, 7, 0.2);
+      border-color: rgba(255, 193, 7, 0.4);
+      color: #ffde8a;
+    }
+  </style>
 </head>
+
 <body>
-<!-- HTML部分保持不变 -->
-<video class="video-background" th:src="@{/static/video/ingame.mp4}" loop muted autoplay preload="auto"></video>
-<div th:replace="~{fragments/navbar :: navbar}"></div>
-<div class="container themed-container mt-4">
+  <!--
+    这个video标签用于在页面背景中循环播放视频。
+    `th:src="@{/static/video/ingame.mp4}"`：Thymeleaf表达式，设置视频的来源路径。`@{...}` 用于构建相对于应用程序上下文的URL。
+    `loop`：使视频循环播放。
+    `muted`：静音视频，防止自动播放时出现声音。
+    `autoplay`：自动播放视频。
+    `preload="auto"`：指示浏览器在页面加载后立即开始下载视频。
+  -->
+  <video class="video-background" th:src="@{/static/video/ingame.mp4}" loop muted autoplay preload="auto"></video>
+
+  <!--
+    这部分使用Thymeleaf模板引擎来包含一个导航栏片段。
+    `th:replace="~{fragments/navbar :: navbar}"`：Thymeleaf表达式，用于替换当前标签的内容。
+    `fragments/navbar :: navbar`：指定要包含的模板片段的位置。`fragments/navbar` 指的是 `fragments` 目录下的 `navbar.html` 文件，`navbar` 指的是该文件中的一个Thymeleaf片段，这个片段定义了导航栏的内容。
+  -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <!--
+    主容器，用于包含页面上的主要内容。
+    `container`：Bootstrap类，用于创建一个固定宽度的响应式容器。
+    `themed-container`：自定义类，可能用于应用特定的主题样式。
+    `mt-4`：Bootstrap类，用于设置上边距（margin-top），值为4个单位。
+  -->
+  <div class="container themed-container mt-4">
+    <!-- 页面标题 -->
     <h1 class="mb-4">上传新视频</h1>
+
+    <!--
+      卡片组件，用于封装上传表单。
+      `card`：Bootstrap类，用于创建一个卡片容器。
+      `card-translucent`：自定义类，用于创建一个半透明的卡片样式。
+      `shadow-sm`：Bootstrap类，用于添加一个小的阴影效果。
+    -->
     <div class="card card-translucent shadow-sm">
-        <div class="card-body p-4">
-            <form id="uploadForm" enctype="multipart/form-data">
-                <div class="mb-3">
-                    <label for="videoFile" class="form-label">选择视频文件:</label>
-                    <input type="file" name="file" id="videoFile" class="form-control" accept="video/*" required>
-                </div>
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" id="burnSubtitles">
-                    <label class="form-check-label" for="burnSubtitles">
-                        同时压制字幕到视频
-                    </label>
-                </div>
-                <button type="submit" class="btn btn-success w-100">
-                    <i class="fas fa-cloud-upload-alt"></i> 开始上传
-                </button>
-            </form>
-            <div class="text-center mt-3">
-                <a href="/topup">余额不足？立即充值</a>
-            </div>
+      <!--
+        卡片主体，用于包含卡片的内容。
+        `card-body`：Bootstrap类，用于设置卡片主体的样式。
+        `p-4`：Bootstrap类，用于设置内边距（padding），值为4个单位。
+      -->
+      <div class="card-body p-4">
+        <!--
+          上传表单。
+          `id="uploadForm"`：表单的ID，用于JavaScript中引用。
+          `enctype="multipart/form-data"`：指定表单数据的编码方式，用于上传文件。
+        -->
+        <form id="uploadForm" enctype="multipart/form-data">
+          <!--
+            视频文件选择器。
+            `mb-3`：Bootstrap类，用于设置下边距（margin-bottom），值为3个单位。
+          -->
+          <div class="mb-3">
+            <!-- 文件选择器的标签 -->
+            <label for="videoFile" class="form-label">选择视频文件:</label>
+            <!--
+              文件选择器输入框。
+              `type="file"`：指定输入类型为文件选择器。
+              `name="file"`：指定输入字段的名称，用于在服务器端获取文件。
+              `id="videoFile"`：输入框的ID，用于JavaScript中引用。
+              `class="form-control"`：Bootstrap类，用于设置输入框的样式。
+              `accept="video/*"`：指定允许选择的文件类型为视频文件。
+              `required`：指定该字段为必填项。
+            -->
+            <input type="file" name="file" id="videoFile" class="form-control" accept="video/*" required>
+          </div>
+
+          <!--
+            “同时压制字幕到视频”复选框。
+            `form-check` 和 `mb-3`：Bootstrap类，用于设置复选框的样式和下边距。
+          -->
+          <div class="form-check mb-3">
+            <!--
+              复选框输入。
+              `class="form-check-input"`：Bootstrap类，用于设置复选框的样式。
+              `type="checkbox"`：指定输入类型为复选框。
+              `id="burnSubtitles"`：输入框的ID，用于JavaScript中引用。
+            -->
+            <input class="form-check-input" type="checkbox" id="burnSubtitles">
+            <!-- 复选框的标签 -->
+            <label class="form-check-label" for="burnSubtitles">
+              同时压制字幕到视频
+            </label>
+          </div>
+
+          <!--
+            提交按钮。
+            `type="submit"`：指定按钮类型为提交按钮。
+            `class="btn btn-success w-100"`：Bootstrap类，用于设置按钮的样式、颜色和宽度。
+          -->
+          <button type="submit" class="btn btn-success w-100">
+            <i class="fas fa-cloud-upload-alt"></i> 开始上传
+          </button>
+        </form>
+
+        <!--
+          余额不足提示链接。
+          `text-center`：Bootstrap类，用于设置文本居中。
+          `mt-3`：Bootstrap类，用于设置上边距（margin-top），值为3个单位。
+        -->
+        <div class="text-center mt-3">
+          <a href="/topup">余额不足？立即充值</a>
         </div>
+      </div>
     </div>
+
+    <!--
+      任务状态显示区域。
+      `mt-4`：Bootstrap类，用于设置上边距（margin-top），值为4个单位。
+      `id="statusArea"`：区域的ID，用于JavaScript中引用。
+      `style="display: none;"`：初始状态下隐藏该区域。
+    -->
     <div class="mt-4" id="statusArea" style="display: none;">
-        <div class="card card-translucent">
-            <div class="card-header">任务状态</div>
-            <div class="card-body">
-                <p><strong>任务ID:</strong> <span id="taskId"></span></p>
-                <p><strong>当前状态:</strong> <span id="currentStatus" class="fw-bold">处理中...</span></p>
-                <div id="errorArea" class="alert alert-danger mt-2" style="display: none;">
-                    <strong>错误信息:</strong> <span id="errorMessage"></span>
-                </div>
-                <div class="alert alert-warning mt-3" id="damagePrompt" style="display: none;">
-                    <p class="mb-2">⚠️ 检测到视频文件损坏，可能影响后续处理（如音轨提取失败）</p>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-warning" id="continueBtn">继续处理 (忽略)</button>
-                        <button class="btn btn-sm btn-danger" id="cancelBtn">取消任务</button>
-                    </div>
-                </div>
-                <div id="downloadLinksContainer" class="mt-3">
-                    <a class="btn btn-secondary btn-sm me-2" id="downloadLink" href="#" style="display: none;">
-                        <i class="fas fa-file-alt"></i> 下载翻译后的SRT文件
-                    </a>
-                    <a class="btn btn-secondary btn-sm" id="videoDownloadLink" href="#" style="display: none;">
-                        <i class="fas fa-video"></i> 下载压制后的视频
-                    </a>
-                </div>
+      <!-- 卡片组件，用于显示任务状态 -->
+      <div class="card card-translucent">
+        <!-- 卡片头部，显示标题 -->
+        <div class="card-header">任务状态</div>
+        <!-- 卡片主体，显示任务详细信息 -->
+        <div class="card-body">
+          <!-- 任务ID显示 -->
+          <p><strong>任务ID:</strong> <span id="taskId"></span></p>
+          <!-- 任务当前状态显示 -->
+          <p><strong>当前状态:</strong> <span id="currentStatus" class="fw-bold">处理中...</span></p>
+
+          <!--
+            错误信息显示区域。
+            `alert alert-danger`：Bootstrap类，用于显示错误提示框。
+            `mt-2`：Bootstrap类，用于设置上边距（margin-top），值为2个单位。
+            `style="display: none;"`：初始状态下隐藏该区域。
+          -->
+          <div id="errorArea" class="alert alert-danger mt-2" style="display: none;">
+            <strong>错误信息:</strong> <span id="errorMessage"></span>
+          </div>
+
+          <!--
+            视频损坏提示区域。
+            `alert alert-warning`：Bootstrap类，用于显示警告提示框。
+            `mt-3`：Bootstrap类，用于设置上边距（margin-top），值为3个单位。
+            `id="damagePrompt"`：区域的ID，用于JavaScript中引用。
+            `style="display: none;"`：初始状态下隐藏该区域。
+          -->
+          <div class="alert alert-warning mt-3" id="damagePrompt" style="display: none;">
+            <p class="mb-2">⚠️ 检测到视频文件损坏，可能影响后续处理（如音轨提取失败）</p>
+            <div class="d-flex gap-2">
+              <!-- 继续处理按钮 -->
+              <button class="btn btn-sm btn-warning" id="continueBtn">继续处理 (忽略)</button>
+              <!-- 取消任务按钮 -->
+              <button class="btn btn-sm btn-danger" id="cancelBtn">取消任务</button>
             </div>
+          </div>
+
+          <!--
+            下载链接容器。
+            `mt-3`：Bootstrap类，用于设置上边距（margin-top），值为3个单位。
+            `id="downloadLinksContainer"`：容器的ID，用于JavaScript中引用。
+          -->
+          <div id="downloadLinksContainer" class="mt-3">
+            <!--
+              下载翻译后的SRT文件链接。
+              `btn btn-secondary btn-sm`：Bootstrap类，用于设置按钮的样式和大小。
+              `me-2`：Bootstrap类，用于设置右边距（margin-right），值为2个单位。
+              `id="downloadLink"`：链接的ID，用于JavaScript中引用。
+              `href="#"`：链接的URL，初始状态下为空。
+              `style="display: none;"`：初始状态下隐藏该链接。
+            -->
+            <a class="btn btn-secondary btn-sm me-2" id="downloadLink" href="#" style="display: none;">
+              <i class="fas fa-file-alt"></i> 下载翻译后的SRT文件
+            </a>
+            <!--
+              下载压制后的视频链接。
+              `btn btn-secondary btn-sm`：Bootstrap类，用于设置按钮的样式和大小。
+              `id="videoDownloadLink"`：链接的ID，用于JavaScript中引用。
+              `href="#"`：链接的URL，初始状态下为空。
+              `style="display: none;"`：初始状态下隐藏该链接。
+            -->
+            <a class="btn btn-secondary btn-sm" id="videoDownloadLink" href="#" style="display: none;">
+              <i class="fas fa-video"></i> 下载压制后的视频
+            </a>
+          </div>
         </div>
+      </div>
     </div>
-</div>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
-<script>
-    $(document).ready(function() {
-        // Helper function to show BS alert
-        function showAlert(type, message, areaId = 'uploadFormMessage') { // a generic message area could be added to the form
-            const messageArea = $('#' + areaId);
-            if (messageArea.length === 0 && areaId === 'uploadFormMessage') { // Create if doesn't exist for form
-                $('#uploadForm').prepend(`<div id="${areaId}" class="mb-3"></div>`);
-            }
-            $('#' + areaId).html(`<div class="alert alert-${type}" role="alert">${message}</div>`).show();
+  </div>
+
+  <!-- 引入 jQuery 库 -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <!-- 引入 Popper.js 库，用于支持 Bootstrap 的下拉菜单、弹出框等组件 -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js"></script>
+  <!-- 引入 Bootstrap JavaScript 库 -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+  <script>
+    $(document).ready(function () {
+      /**
+       * 显示 Bootstrap 警告框的辅助函数。
+       * @param {string} type 警告框的类型（'success'、'danger'、'warning'、'info'）。
+       * @param {string} message 要显示的消息。
+       * @param {string} [areaId='uploadFormMessage'] 消息显示区域的ID，默认为 'uploadFormMessage'。
+       */
+      function showAlert(type, message, areaId = 'uploadFormMessage') {
+        // 获取消息显示区域的 jQuery 对象
+        const messageArea = $('#' + areaId);
+
+        // 如果消息区域不存在，并且 areaId 是默认值 'uploadFormMessage'，则创建一个新的消息区域
+        if (messageArea.length === 0 && areaId === 'uploadFormMessage') {
+          $('#uploadForm').prepend(`<div id="${areaId}" class="mb-3"></div>`);
         }
 
+        // 设置消息区域的内容为警告框，并显示该区域
+        $('#' + areaId).html(`<div class="alert alert-${type}" role="alert">${message}</div>`).show();
+      }
 
-        $('#uploadForm').submit(function(e) {
-            e.preventDefault();
-            $('#uploadFormMessage').remove(); // Clear previous form message
-            const fileInput = $('#videoFile')[0];
-            if (!fileInput.files.length) {
-                showAlert('warning', '请选择视频文件');
-                return;
+      /**
+       * 处理上传表单的提交事件。
+       * @param {Event} e 提交事件对象。
+       */
+      $('#uploadForm').submit(function (e) {
+        // 阻止表单的默认提交行为
+        e.preventDefault();
+
+        // 移除之前显示的表单消息
+        $('#uploadFormMessage').remove();
+
+        // 获取文件输入框的 jQuery 对象
+        const fileInput = $('#videoFile')[0];
+
+        // 检查是否有选择文件
+        if (!fileInput.files.length) {
+          showAlert('warning', '请选择视频文件');
+          return;
+        }
+
+        // 创建 FormData 对象，用于存储表单数据
+        const formData = new FormData();
+
+        // 将选择的文件添加到 FormData 对象中
+        formData.append('file', fileInput.files[0]);
+
+        // 将“同时压制字幕到视频”复选框的状态添加到 FormData 对象中
+        formData.append('burnSubtitles', document.getElementById('burnSubtitles').checked);
+
+        // 禁用提交按钮，并显示上传中的动画
+        $(this).find('button[type="submit"]').prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 上传中...');
+
+        // 发送 AJAX 请求到服务器
+        $.ajax({
+          url: '/api/video/upload', // 上传视频的 API 接口地址
+          type: 'POST', // 请求类型为 POST
+          data: formData, // 请求数据为 FormData 对象
+          processData: false, //  设置为false。因为data值是FormData对象，不需要对数据做处理。
+          contentType: false, //  设置为false。因为是由<form>表单构造的FormData对象，且已经声明了属性enctype="multipart/form-data"，所以也不需要设置Content-Type值。
+          /**
+           * 请求成功时的回调函数。
+           * @param {object} response 服务器返回的响应数据。
+           */
+          success: function (response) {
+            // 检查响应中是否包含任务ID
+            if (!response.taskId) {
+              showAlert('danger', "上传失败: " + (response.message || "未知错误"));
+              return;
             }
 
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
-            formData.append('burnSubtitles', document.getElementById('burnSubtitles').checked);
+            // 显示任务状态区域
+            $('#statusArea').show();
 
-            // Disable button during upload
-            $(this).find('button[type="submit"]').prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 上传中...');
+            // 设置任务ID
+            $('#taskId').text(response.taskId);
 
+            // 设置任务状态为“已上传，等待处理...”，并添加相应的样式
+            $('#currentStatus').text("已上传，等待处理...").removeClass('text-success text-danger').addClass('text-info');
 
-            $.ajax({
-                url: '/api/video/upload',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function(response) {
-                    if (!response.taskId) {
-                        showAlert('danger', "上传失败: " + (response.message || "未知错误"));
-                        return;
-                    }
-                    $('#statusArea').show();
-                    $('#taskId').text(response.taskId);
-                    $('#currentStatus').text("已上传，等待处理...").removeClass('text-success text-danger').addClass('text-info');
-                    $('#errorArea').hide();
-                    $('#damagePrompt').hide();
-                    $('#downloadLink, #videoDownloadLink').hide();
-                    pollTaskStatus(response.taskId);
-                },
-                error: function(xhr) {
-                    showAlert('danger', "上传失败: " + (xhr.responseJSON ? xhr.responseJSON.message : "服务错误"));
-                },
-                complete: function() {
-                    $('#uploadForm').find('button[type="submit"]').prop('disabled', false).html('<i class="fas fa-cloud-upload-alt"></i> 开始上传');
-                }
-            });
+            // 隐藏错误信息区域和视频损坏提示区域
+            $('#errorArea').hide();
+            $('#damagePrompt').hide();
+
+            // 隐藏下载链接
+            $('#downloadLink, #videoDownloadLink').hide();
+
+            // 启动轮询任务状态
+            pollTaskStatus(response.taskId);
+          },
+          /**
+           * 请求失败时的回调函数。
+           * @param {object} xhr XMLHttpRequest 对象。
+           */
+          error: function (xhr) {
+            showAlert('danger', "上传失败: " + (xhr.responseJSON ? xhr.responseJSON.message : "服务错误"));
+          },
+          /**
+           * 请求完成时的回调函数（无论成功或失败都会执行）。
+           */
+          complete: function () {
+            // 恢复提交按钮的状态
+            $('#uploadForm').find('button[type="submit"]').prop('disabled', false).html('<i class="fas fa-cloud-upload-alt"></i> 开始上传');
+          }
         });
+      });
 
-        function pollTaskStatus(taskId) {
-            const interval = setInterval(() => {
-                $.get(`/api/task/status/${taskId}`, function(task) {
-                    if (!task) {
-                        clearInterval(interval);
-                        $('#currentStatus').text("任务不存在").removeClass('text-info text-success').addClass('text-danger');
-                        return;
-                    }
+      /**
+       * 轮询任务状态的函数。
+       * @param {string} taskId 任务ID。
+       */
+      function pollTaskStatus(taskId) {
+        // 设置轮询间隔为 3 秒
+        const interval = setInterval(() => {
+          // 发送 AJAX 请求到服务器，获取任务状态
+          $.get(`/api/task/status/${taskId}`, function (task) {
+            // 检查任务是否存在
+            if (!task) {
+              clearInterval(interval);
+              $('#currentStatus').text("任务不存在").removeClass('text-info text-success').addClass('text-danger');
+              return;
+            }
 
-                    $('#currentStatus').text(task.status.displayName || task.status); // Assuming status might be an enum or object
-                    // Reset color classes and apply new one
-                    $('#currentStatus').removeClass('text-info text-success text-danger text-warning');
-                    if (task.status === 'COMPLETED') $('#currentStatus').addClass('text-success');
-                    else if (task.status === 'FAILED' || task.status === 'CANCELLED') $('#currentStatus').addClass('text-danger');
-                    else if (task.status === 'VIDEO_DAMAGED_AWAITING_USER_CHOICE') $('#currentStatus').addClass('text-warning');
-                    else $('#currentStatus').addClass('text-info');
+            // 设置任务状态
+            $('#currentStatus').text(task.status.displayName || task.status); // Assuming status might be an enum or object
 
+            // 重置颜色类并应用新的类
+            $('#currentStatus').removeClass('text-info text-success text-danger text-warning');
+            if (task.status === 'COMPLETED') $('#currentStatus').addClass('text-success');
+            else if (task.status === 'FAILED' || task.status === 'CANCELLED') $('#currentStatus').addClass('text-danger');
+            else if (task.status === 'VIDEO_DAMAGED_AWAITING_USER_CHOICE') $('#currentStatus').addClass('text-warning');
+            else $('#currentStatus').addClass('text-info');
 
-                    if (task.errorMessage) {
-                        $('#errorArea').show();
-                        $('#errorMessage').text(task.errorMessage);
-                    } else {
-                        $('#errorArea').hide();
-                    }
+            // 显示错误信息（如果存在）
+            if (task.errorMessage) {
+              $('#errorArea').show();
+              $('#errorMessage').text(task.errorMessage);
+            } else {
+              $('#errorArea').hide();
+            }
 
-                    if (task.status === 'VIDEO_DAMAGED_AWAITING_USER_CHOICE') {
-                        $('#damagePrompt').show();
-                        clearInterval(interval); // Stop polling until user acts
+            // 如果任务状态为 VIDEO_DAMAGED_AWAITING_USER_CHOICE，则显示视频损坏提示
+            if (task.status === 'VIDEO_DAMAGED_AWAITING_USER_CHOICE') {
+              $('#damagePrompt').show();
+              clearInterval(interval); // 停止轮询，直到用户采取行动
 
-                        $('#continueBtn').off('click').on('click', () => { // Use .off().on() to prevent multiple bindings
-                            $('#continueBtn, #cancelBtn').prop('disabled', true);
-                            $.post(`/api/task/continue/${taskId}`)
-                                .done(() => {
-                                    $('#damagePrompt').hide();
-                                    $('#currentStatus').text("任务已重新启动处理...").removeClass('text-warning').addClass('text-info');
-                                    pollTaskStatus(taskId);
-                                })
-                                .fail(xhr => alert("继续处理失败: " + (xhr.responseJSON ? xhr.responseJSON.message : "服务错误")))
-                                .always(() => $('#continueBtn, #cancelBtn').prop('disabled', false));
-                        });
+              // 移除之前的事件绑定，防止重复绑定
+              $('#continueBtn').off('click').on('click', () => {
+                $('#continueBtn, #cancelBtn').prop('disabled', true);
+                $.post(`/api/task/continue/${taskId}`)
+                  .done(() => {
+                    $('#damagePrompt').hide();
+                    $('#currentStatus').text("任务已重新启动处理...").removeClass('text-warning').addClass('text-info');
+                    pollTaskStatus(taskId);
+                  })
+                  .fail(xhr => alert("继续处理失败: " + (xhr.responseJSON ? xhr.responseJSON.message : "服务错误")))
+                  .always(() => $('#continueBtn, #cancelBtn').prop('disabled', false));
+              });
 
-                        $('#cancelBtn').off('click').on('click', () => {
-                            $('#continueBtn, #cancelBtn').prop('disabled', true);
-                            $.post(`/api/task/cancel/${taskId}`)
-                                .done(() => {
-                                    $('#damagePrompt').hide();
-                                    $('#currentStatus').text("任务已取消").removeClass('text-warning').addClass('text-danger');
-                                    clearInterval(interval);
-                                })
-                                .fail(xhr => alert("取消任务失败: " + (xhr.responseJSON ? xhr.responseJSON.message : "服务错误")))
-                                .always(() => $('#continueBtn, #cancelBtn').prop('disabled', false));
-                        });
-                    } else {
-                        $('#damagePrompt').hide(); // Hide if status changes from damaged
-                    }
+              $('#cancelBtn').off('click').on('click', () => {
+                $('#continueBtn, #cancelBtn').prop('disabled', true);
+                $.post(`/api/task/cancel/${taskId}`)
+                  .done(() => {
+                    $('#damagePrompt').hide();
+                    $('#currentStatus').text("任务已取消").removeClass('text-warning').addClass('text-danger');
+                    clearInterval(interval);
+                  })
+                  .fail(xhr => alert("取消任务失败: " + (xhr.responseJSON ? xhr.responseJSON.message : "服务错误")))
+                  .always(() => $('#continueBtn, #cancelBtn').prop('disabled', false));
+              });
+            } else {
+              $('#damagePrompt').hide(); // 如果状态从损坏状态更改，则隐藏
+            }
 
-                    if (task.status === 'COMPLETED') {
-                        $('#downloadLink').attr('href', `/api/task/download/srt/translated/${taskId}`).show();
-                        if (task.burnSubtitles && task.subtitledVideoFilePath) {
-                            $('#videoDownloadLink').attr('href', `/api/task/download/video/subtitled/${taskId}`).show();
-                        }
-                        clearInterval(interval);
-                    } else if (['FAILED', 'CANCELLED'].includes(task.status)) {
-                        clearInterval(interval);
-                    }
-                }).fail(function() {
-                    // Handle polling 404.html (e.g., network issue, server down)
-                    console.error("Polling failed for task " + taskId);
-                    // Optionally, inform the user or stop polling after several failures
-                });
-            }, 3000);
-        }
+            // 如果任务状态为 COMPLETED，则显示下载链接
+            if (task.status === 'COMPLETED') {
+              $('#downloadLink').attr('href', `/api/task/download/srt/translated/${taskId}`).show();
+              if (task.burnSubtitles && task.subtitledVideoFilePath) {
+                $('#videoDownloadLink').attr('href', `/api/task/download/video/subtitled/${taskId}`).show();
+              }
+              clearInterval(interval);
+            } else if (['FAILED', 'CANCELLED'].includes(task.status)) {
+              clearInterval(interval);
+            }
+          }).fail(function () {
+            // 处理轮询 404 错误（例如，网络问题、服务器关闭）
+            console.error("Polling failed for task " + taskId);
+            // 可选地，通知用户或在多次失败后停止轮询
+          });
+        }, 3000);
+      }
     });
-</script>
+  </script>
 </body>
+
 </html>

@@ -1,80 +1,121 @@
 <!DOCTYPE html>
 <html lang="zh" xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>注册 - 字幕翻译工具</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/auth-styles.css">  <!-- 新增公共样式 -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>注册 - 字幕翻译工具</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/auth-styles.css">
 </head>
+
 <body>
-<div class="form-container">
+  <div class="form-container">
     <div class="card shadow-sm">
-        <div class="card-body p-4">
-            <h2 class="card-title text-center mb-4"></h2>
-            <form id="registerForm">
-                <div class="mb-3">
-                    <label for="username" class="form-label">用户名:</label>
-                    <input type="text" class="form-control" id="username" name="username" required>
-                </div>
-                <div class="mb-3">
-                    <label for="password" class="form-label">密码:</label>
-                    <input type="password" class="form-control" id="password" name="password" required>
-                </div>
-                <div class="mb-3">
-                    <label for="email" class="form-label">邮箱:</label>
-                    <input type="email" class="form-control" id="email" name="email" required>
-                </div>
-                <button type="submit" class="btn btn-success w-100">注册</button>
-                <div id="message" class="mt-3 text-center"></div>
-            </form>
-            <div class="mt-3 text-center">
-                <p>已有账号？<a href="/login">立即登录</a></p>
-            </div>
+      <div class="card-body p-4">
+        <h2 class="card-title text-center mb-4"></h2>
+        <form id="registerForm">
+          <div class="mb-3">
+            <label for="username" class="form-label">用户名:</label>
+            <input type="text" class="form-control" id="username" name="username" required>
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">密码:</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+          </div>
+          <div class="mb-3">
+            <label for="email" class="form-label">邮箱:</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+          </div>
+          <button type="submit" class="btn btn-success w-100">注册</button>
+          <div id="message" class="mt-3 text-center"></div>
+        </form>
+        <div class="mt-3 text-center">
+          <p>已有账号？<a href="/login">立即登录</a></p>
         </div>
+      </div>
     </div>
-</div>
+  </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
-<script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+  <script>
+    /*
+     * 注册页面脚本
+     *
+     * 该脚本处理用户注册表单的提交，并与服务器进行通信以完成注册过程。
+     * 它还负责显示注册成功或失败的消息，并重定向用户到登录页面。
+     */
     document.addEventListener('DOMContentLoaded', () => {
-        const registerForm = document.getElementById('registerForm');
-        const messageElement = document.getElementById('message');
+      // 获取注册表单元素
+      const registerForm = document.getElementById('registerForm');
+      // 获取消息显示元素，用于显示注册结果
+      const messageElement = document.getElementById('message');
 
-        registerForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const email = document.getElementById('email').value;
+      /**
+       * 注册表单提交事件监听器
+       *
+       * 该监听器在表单提交时被触发，阻止默认的表单提交行为，
+       * 并通过异步请求将用户注册信息发送到服务器。
+       *
+       * @param {Event} event - 提交事件对象
+       */
+      registerForm.addEventListener('submit', async (event) => {
+        // 阻止表单的默认提交行为，防止页面跳转
+        event.preventDefault();
+        // 获取用户名输入框的值
+        const username = document.getElementById('username').value;
+        // 获取密码输入框的值
+        const password = document.getElementById('password').value;
+        // 获取邮箱输入框的值
+        const email = document.getElementById('email').value;
 
-            messageElement.textContent = '';
-            messageElement.className = 'mt-3 text-center'; // Reset class
+        // 清空消息元素的内容
+        messageElement.textContent = '';
+        // 重置消息元素的类名，移除之前的样式
+        messageElement.className = 'mt-3 text-center';
 
-            try {
-                const response = await fetch('/api/auth/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password, email })
-                });
-                const data = await response.json();
+        try {
+          // 发送注册请求到服务器
+          const response = await fetch('/api/auth/register', {
+            method: 'POST', // 使用 POST 方法
+            headers: {
+              'Content-Type': 'application/json' // 设置请求头，表明发送的是 JSON 数据
+            },
+            // 将用户名、密码和邮箱信息转换为 JSON 字符串作为请求体发送
+            body: JSON.stringify({
+              username,
+              password,
+              email
+            })
+          });
+          // 将服务器返回的 JSON 字符串解析为 JavaScript 对象
+          const data = await response.json();
 
-                if (response.ok) {
-                    messageElement.textContent = data.message || '注册成功！请前往登录。';
-                    messageElement.classList.add('alert', 'alert-success');
-                    setTimeout(() => { window.location.href = '/login'; }, 2000);
-                } else {
-                    messageElement.textContent = data.message || '注册失败，请重试。';
-                    messageElement.classList.add('alert', 'alert-danger');
-                }
-            } catch (error) {
-                messageElement.textContent = '网络请求失败，请稍后再试。';
-                messageElement.classList.add('alert', 'alert-danger');
-                console.error('网络请求错误:', error);
-            }
-        });
+          // 检查响应状态码，判断注册是否成功
+          if (response.ok) {
+            // 如果注册成功
+            messageElement.textContent = data.message || '注册成功！请前往登录。'; // 显示注册成功的消息
+            messageElement.classList.add('alert', 'alert-success'); // 添加成功样式
+            // 延迟 2 秒后重定向到登录页面
+            setTimeout(() => {
+              window.location.href = '/login';
+            }, 2000);
+          } else {
+            // 如果注册失败
+            messageElement.textContent = data.message || '注册失败，请重试。'; // 显示注册失败的消息
+            messageElement.classList.add('alert', 'alert-danger'); // 添加失败样式
+          }
+        } catch (error) {
+          // 如果发生网络请求错误
+          messageElement.textContent = '网络请求失败，请稍后再试。'; // 显示网络错误消息
+          messageElement.classList.add('alert', 'alert-danger'); // 添加失败样式
+          console.error('网络请求错误:', error); // 在控制台输出错误信息
+        }
+      });
     });
-</script>
+  </script>
 </body>
+
 </html>

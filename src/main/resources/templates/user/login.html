@@ -1,89 +1,214 @@
 <!DOCTYPE html>
 <html lang="zh" xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>登录 - 字幕翻译工具</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/auth-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 - 字幕翻译工具</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/auth-styles.css">
 </head>
+
 <body>
-<div class="form-container">
+  <div class="form-container">
     <div class="card shadow-sm">
-        <div class="card-body p-4">
-            <h2 class="card-title text-center mb-4">登录</h2>
-            <form id="loginForm">
-                <div class="mb-3">
-                    <label for="username" class="form-label">用户名:</label>
-                    <input type="text" class="form-control" id="username" name="username" required>
-                </div>
-                <div class="mb-3">
-                    <label for="password" class="form-label">密码:</label>
-                    <input type="password" class="form-control" id="password" name="password" required>
-                </div>
-                <button type="submit" class="btn btn-primary w-100">登录</button>
-                <div id="errorMessage" class="mt-3 text-center"></div>
-            </form>
-            <div class="mt-3 text-center">
-                <p>没有账号？<a href="/register">立即注册</a></p>
-            </div>
-            <div class="mt-3 text-center">
-                <p>是管理员？<a href="/admin/login">点击登录</a></p>
-            </div>
+      <div class="card-body p-4">
+        <h2 class="card-title text-center mb-4">登录</h2>
+        <form id="loginForm">
+          <div class="mb-3">
+            <label for="username" class="form-label">用户名:</label>
+            <input type="text" class="form-control" id="username" name="username" required>
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">密码:</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">登录</button>
+          <div id="errorMessage" class="mt-3 text-center"></div>
+        </form>
+        <div class="mt-3 text-center">
+          <p>没有账号？<a href="/register">立即注册</a></p>
         </div>
+        <div class="mt-3 text-center">
+          <p>是管理员？<a href="/admin/login">点击登录</a></p>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
-<script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+  <script>
+    /**
+     * @file
+     * @description
+     * 这个文件是用户登录页面 (login.html) 的脚本。
+     * 它负责处理用户登录表单的提交，验证用户输入的用户名和密码，
+     * 并通过 API 将登录信息发送到后端进行验证。
+     * 如果登录成功，用户的 userId、username 和 balance 将会被存储在 localStorage 中，
+     * 并重定向到主页 (index.html)。
+     * 如果登录失败，页面上会显示错误消息。
+     *
+     * **核心概念：**
+     * 1. **DOM (Document Object Model):** 通过 JavaScript 操作 HTML 元素，例如获取表单输入的值和显示错误消息。
+     * 2. **事件监听器 (Event Listener):** 监听表单的提交事件，并在事件发生时执行相应的代码。
+     * 3. **Fetch API:** 用于向后端发送 HTTP 请求，获取登录验证的结果。
+     * 4. **localStorage:** 用于在浏览器中存储用户数据，以便在用户下次访问页面时自动登录。
+     * 5. **URLSearchParams:** 用于构建 `application/x-www-form-urlencoded` 格式的请求体。
+     */
     document.addEventListener('DOMContentLoaded', () => {
-        const loginForm = document.getElementById('loginForm');
-        const errorMessageElement = document.getElementById('errorMessage');
+      /**
+       * @description
+       * 获取登录表单和错误消息显示的 DOM 元素。
+       *
+       * **核心概念：**
+       * `document.getElementById` 是 DOM API 的一部分，用于通过元素的 `id` 属性获取对该元素的引用。
+       * 获取元素后，可以对其进行各种操作，例如读取或修改其内容、样式或属性。
+       */
+      const loginForm = document.getElementById('loginForm');
+      const errorMessageElement = document.getElementById('errorMessage');
 
-        loginForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+      /**
+       * @description
+       * 为登录表单添加提交事件监听器。
+       * 当用户提交表单时，会触发此监听器中的代码。
+       *
+       * @param {Event} event - 提交事件对象。
+       *
+       * **核心概念：**
+       * 1. **事件监听器 (Event Listener):** 用于监听 HTML 元素上发生的特定事件，并在事件发生时执行回调函数。
+       * 2. **事件对象 (Event Object):** 包含有关事件的信息，例如事件类型、目标元素和时间戳。
+       * 3. **`event.preventDefault()`:** 阻止表单的默认提交行为，以便使用 JavaScript 处理表单提交。
+       */
+      loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault(); // 阻止表单的默认提交行为
 
-            errorMessageElement.textContent = '';
-            errorMessageElement.className = 'mt-3 text-center';
+        /**
+         * @description
+         * 获取用户输入的用户名和密码。
+         *
+         * **核心概念：**
+         * 通过 `document.getElementById` 获取输入框元素，然后使用 `.value` 属性获取输入框中的值。
+         */
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
 
+        /**
+         * @description
+         * 清空错误消息，并重置错误消息元素的 CSS 类。
+         * 每次提交表单前，都需要清空之前的错误消息，以避免显示过时的错误信息。
+         */
+        errorMessageElement.textContent = '';
+        errorMessageElement.className = 'mt-3 text-center';
+
+        /**
+         * @description
+         * 使用 `try...catch` 块来处理异步操作中的错误。
+         * `try` 块包含可能抛出异常的代码，而 `catch` 块包含处理异常的代码。
+         *
+         * **核心概念：**
+         * 1. **异步操作 (Asynchronous Operation):** 指的是不会立即完成的操作，例如网络请求。
+         * 2. **`try...catch` 块:** 用于捕获和处理代码中的异常，防止程序崩溃。
+         */
+        try {
+          /**
+           * @description
+           * 使用 Fetch API 向后端发送登录请求。
+           *
+           * @param {string} '/api/auth/login' - 请求的 URL。
+           * @param {object} { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ username, password }).toString() } - 请求的配置对象。
+           *
+           * **核心概念：**
+           * 1. **Fetch API:** 用于发送 HTTP 请求，获取服务器响应。
+           * 2. **`method: 'POST'`:** 指定请求方法为 POST，用于向服务器提交数据。
+           * 3. **`headers`:** 设置请求头，`Content-Type` 指定请求体的格式为 `application/x-www-form-urlencoded`。
+           * 4. **`body`:** 设置请求体，使用 `URLSearchParams` 将用户名和密码转换为 `application/x-www-form-urlencoded` 格式的字符串。
+           * 5. **`await`:** 等待异步操作完成，并获取其结果。
+           */
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+              username,
+              password
+            }).toString()
+          });
+
+          /**
+           * @description
+           * 检查响应状态码是否表示成功。
+           * 如果 `response.ok` 为 `true`，则表示响应状态码在 200-299 范围内，即请求成功。
+           */
+          if (response.ok) {
+            /**
+             * @description
+             * 解析响应体中的 JSON 数据。
+             *
+             * **核心概念：**
+             * `response.json()` 方法用于将响应体中的 JSON 字符串转换为 JavaScript 对象。
+             */
+            const data = await response.json();
+
+            /**
+             * @description
+             * 将用户 ID、用户名和余额存储在 localStorage 中。
+             *
+             * **核心概念：**
+             * `localStorage` 是 Web Storage API 的一部分，用于在浏览器中存储键值对数据。
+             * 存储在 `localStorage` 中的数据在浏览器关闭后仍然存在，直到被显式删除。
+             */
+            localStorage.setItem('userId', data.userId);
+            localStorage.setItem('username', data.username);
+            localStorage.setItem('balance', data.balance);
+
+            /**
+             * @description
+             * 重定向到主页。
+             *
+             * **核心概念：**
+             * `window.location.href` 用于更改当前页面的 URL，从而实现页面重定向。
+             */
+            window.location.href = '/index';
+          } else {
+            /**
+             * @description
+             * 处理登录失败的情况。
+             *
+             * **增强错误处理：**
+             * 优先尝试解析 JSON 格式的错误信息，如果解析失败，则读取文本格式的错误信息。
+             * 这样可以处理后端返回的各种错误信息格式。
+             */
+            let errorMessage = '登录失败，请检查用户名或密码。';
             try {
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({ username, password }).toString()
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    localStorage.setItem('userId', data.userId);
-                    localStorage.setItem('username', data.username);
-                    localStorage.setItem('balance', data.balance);
-                    window.location.href = '/index';
-                } else {
-                    // 增强错误处理：优先解析JSON，失败则读取文本
-                    let errorMessage = '登录失败，请检查用户名或密码。';
-                    try {
-                        const errorData = await response.json();
-                        errorMessage = errorData.message || errorMessage;
-                    } catch (e) {
-                        // 响应非JSON时直接读取文本内容（如后端异常信息）
-                        const errorText = await response.text();
-                        errorMessage = errorText || errorMessage;
-                    }
-                    errorMessageElement.textContent = errorMessage;
-                    errorMessageElement.classList.add('alert', 'alert-danger');
-                }
-            } catch (error) {
-                errorMessageElement.textContent = '登录失败，请稍后再试。';
-                errorMessageElement.classList.add('alert', 'alert-danger');
-                console.error('网络请求错误:', error);
+              const errorData = await response.json();
+              errorMessage = errorData.message || errorMessage;
+            } catch (e) {
+              // 响应非JSON时直接读取文本内容（如后端异常信息）
+              const errorText = await response.text();
+              errorMessage = errorText || errorMessage;
             }
-        });
+            errorMessageElement.textContent = errorMessage;
+            errorMessageElement.classList.add('alert', 'alert-danger');
+          }
+        } catch (error) {
+          /**
+           * @description
+           * 处理网络请求错误。
+           *
+           * **核心概念：**
+           * 如果在发送请求或处理响应时发生错误，例如网络连接错误或服务器错误，则会抛出异常。
+           * 在 `catch` 块中，可以处理这些异常，例如显示错误消息或重试请求。
+           */
+          errorMessageElement.textContent = '登录失败，请稍后再试。';
+          errorMessageElement.classList.add('alert', 'alert-danger');
+          console.error('网络请求错误:', error);
+        }
+      });
     });
-</script>
+  </script>
 </body>
+
 </html>
