@@ -24,15 +24,4 @@ public class CustomErrorController implements ErrorController {
         return "404"; // 返回自定义的404错误页面
     }
 
-    /**
-     * 获取错误路径。
-     *
-     * @return 返回字符串"/404.html"，表示错误页面所在的路径。
-     *         虽然这里返回了"/404.html"，但实际处理是由handleError方法完成的，
-     *         这个方法的返回值在这里并没有直接被使用。
-     *         在Spring Boot 2.3及以上版本，推荐使用handleError方法来处理错误。
-     */
-    public String getErrorPath() {
-        return "/404.html";
-    }
 }

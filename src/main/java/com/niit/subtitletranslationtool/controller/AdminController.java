@@ -5,8 +5,6 @@ import com.niit.subtitletranslationtool.entity.User;
 import com.niit.subtitletranslationtool.enums.TaskStatus;
 import com.niit.subtitletranslationtool.mapper.TaskMapper;
 import com.niit.subtitletranslationtool.mapper.UserMapper;
-import com.niit.subtitletranslationtool.service.UserService;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -38,9 +36,6 @@ public class AdminController {
     private TaskMapper taskMapper;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
     /**
@@ -61,7 +56,7 @@ public class AdminController {
 
     /**
      * 跳转至添加用户的表单页面。
-     *
+     *d
      * @param model 模型对象，用于向视图传递新用户对象（初始化表单）
      * @return 用户表单视图路径
      */
@@ -191,7 +186,7 @@ public class AdminController {
 
     /**
      * 跳转至管理员后台首页，展示系统统计数据和最近动态。
-     * 包含用户总数、任务总数、完成/失败任务数，以及最近5个任务和用户的动态数据。
+     * 包含用户总数、任务总数、完成/失败任务数，以及最近5个任务和5个用户的动态数据。
      *
      * @param model          模型对象，用于传递各项统计数据和最近动态列表
      * @param authentication Spring Security认证对象，用于获取当前管理员的认证信息（可选）
@@ -241,7 +236,7 @@ public class AdminController {
         String adminName = getAdminName();
         model.addAttribute("adminName", adminName);
 
-        // 返回管理员后台首页视图
+        // 返回管理员后台首页视图，此处并非拼写错误，忽略ide的提醒
         return "admin/adminindex";
     }
 

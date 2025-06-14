@@ -1,7 +1,6 @@
 package com.niit.subtitletranslationtool.controller;
 
 import com.niit.subtitletranslationtool.dto.AuthResponse;
-import com.niit.subtitletranslationtool.dto.LoginRequest;
 import com.niit.subtitletranslationtool.dto.RegisterRequest;
 import com.niit.subtitletranslationtool.dto.TopUpRequest;
 import com.niit.subtitletranslationtool.entity.User;
@@ -9,10 +8,7 @@ import com.niit.subtitletranslationtool.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,18 +27,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final UserService userService;
-    private final AuthenticationManager authenticationManager;
 
     /**
      * 构造函数，用于依赖注入。
      *
      * @param userService 用户服务，用于处理用户相关的业务逻辑。
-     * @param authenticationManager 认证管理器，用于处理用户认证。
      */
     @Autowired
-    public AuthController(UserService userService, AuthenticationManager authenticationManager) {
+    public AuthController(UserService userService) {
         this.userService = userService;
-        this.authenticationManager = authenticationManager;
     }
 
     /**
@@ -68,7 +61,7 @@ public class AuthController {
                     registeredUser.getId(),
                     registeredUser.getUsername()
             );
-            // 返回注册成功的响应，状态码为 201 (CREATED)
+            // 返回注册成功地响应，状态码为 201 (CREATED)
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
             // 如果注册过程中发生异常，返回注册失败的响应，状态码为 400 (BAD_REQUEST)
