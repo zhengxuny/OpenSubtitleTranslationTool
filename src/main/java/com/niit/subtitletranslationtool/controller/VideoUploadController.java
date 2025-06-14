@@ -57,8 +57,12 @@ public class VideoUploadController {
         this.storageService = storageService;
         this.taskMapper = taskMapper;
         this.asyncVideoProcessingService = asyncVideoProcessingService;
+        // 确定上传目录的路径
+        // 首先检查配置的 uploadDir 路径是否为绝对路径
         this.uploadDir = Paths.get(uploadDir).isAbsolute()
+                // 如果 uploadDir 已经是绝对路径，则直接使用该路径
                 ? Paths.get(uploadDir)
+                // 否则，将 uploadDir 视为相对路径，并将其解析为相对于用户当前工作目录的绝对路径
                 : Paths.get(System.getProperty("user.dir"), uploadDir);
     }
 
@@ -87,7 +91,7 @@ public class VideoUploadController {
             }
 
             // 生成唯一文件前缀避免同名覆盖，执行文件存储操作
-            String uniquePrefix = UUID.randomUUID().toString() + "_";
+            String uniquePrefix = UUID.randomUUID() + "_";
             String storedFilename = storageService.store(file, uniquePrefix);
 
             // 初始化任务实体并设置基础属性

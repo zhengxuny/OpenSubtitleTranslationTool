@@ -69,7 +69,7 @@ public class TaskStatusController {
 
         // 验证任务当前状态是否为等待用户处理的损坏状态
         if (task.getStatus() != TaskStatus.VIDEO_DAMAGED_AWAITING_USER_CHOICE) {
-            return ResponseEntity.badRequest().body("当前状态不允许继续处理");
+            return ResponseEntity.badRequest().body("您选择了停止继续，任务结束");
         }
 
         // 调用异步服务重新处理任务
