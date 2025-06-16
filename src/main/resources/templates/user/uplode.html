@@ -410,7 +410,7 @@
        * @param {string} taskId 任务ID。
        */
       function pollTaskStatus(taskId) {
-        // 设置轮询间隔为 3 秒
+        // 设置轮询间隔为 1 秒
         const interval = setInterval(() => {
           // 发送 AJAX 请求到服务器，获取任务状态
           $.get(`/api/task/status/${taskId}`, function (task) {
@@ -486,7 +486,7 @@
             console.error("Polling failed for task " + taskId);
             // 可选地，通知用户或在多次失败后停止轮询
           });
-        }, 3000);
+        }, 1000);
       }
     });
   </script>
