@@ -32,6 +32,7 @@ public class WhisperService {
     private final Path outputDir; // 字幕文件输出目录
     private final boolean vadFilter; // 是否启用语音活动检测 (VAD) 过滤
     private final int timeoutMultiplier; // 超时时间倍数（实际超时时间 = 60秒 * 倍数）
+    private final FFmpegService ffmpegService;  // 添加FFmpegService依赖
 
     /**
      * 构造 {@code WhisperService} 的实例。
@@ -44,6 +45,7 @@ public class WhisperService {
      *                          VAD 过滤可以移除音频中的静音部分，提高转录质量。
      * @param timeoutMultiplier 超时时间倍数，通过 @Value 注解从配置文件中读取。
      *                          用于设置转录过程的最大允许时间。
+     * @param ffmpegService     FFmpegService 实例，通过 Spring 的依赖注入传入。
      */
     public WhisperService(
             @Value("${whisper.executable-path}") String executablePath,
@@ -51,13 +53,15 @@ public class WhisperService {
             @Value("${whisper.device}") String device,
             @Value("${whisper.output-dir}") String outputDir,
             @Value("${whisper.vad-filter}") boolean vadFilter,
-            @Value("${whisper.timeout-multiplier}") int timeoutMultiplier) {
+            @Value("${whisper.timeout-multiplier}") int timeoutMultiplier,
+            FFmpegService ffmpegService) {  // 添加FFmpegService参数
         this.executable = Paths.get(executablePath);
         this.model = model;
         this.device = device;
         this.outputDir = Paths.get(outputDir);
         this.vadFilter = vadFilter;
         this.timeoutMultiplier = timeoutMultiplier;
+        this.ffmpegService = ffmpegService;  // 初始化FFmpegService
         initOutputDir(); // 初始化输出目录
     }
 

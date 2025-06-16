@@ -94,10 +94,10 @@ public class SimpleTranslationService {
             requestBody.set("messages", messagesArray);
             requestBody.put("stream", false);
 
-            // 添加thinking参数以关闭深度思考
-            ObjectNode thinkingNode = objectMapper.createObjectNode();
-            thinkingNode.put("type", "disabled");
-            requestBody.set("thinking", thinkingNode);
+//            // 添加thinking参数以关闭深度思考
+//            ObjectNode thinkingNode = objectMapper.createObjectNode();
+//            thinkingNode.put("type", "disabled");
+//            requestBody.set("thinking", thinkingNode);
 
             // 通过WebClient发送POST请求，设置请求头、内容类型和请求体，同步获取响应
             JsonNode response = webClient.post()

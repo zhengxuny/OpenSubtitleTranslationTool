@@ -51,6 +51,7 @@ public class TaskProcessingService {
      * @param summaryService      视频总结生成服务实例
      * @param tempAudioDir        临时音频目录配置路径（支持绝对路径或相对于项目根目录的相对路径）
      */
+    @SuppressWarnings("DuplicateExpressions")
     @Autowired
     public TaskProcessingService(
             FFmpegService ffmpegService,
@@ -66,6 +67,7 @@ public class TaskProcessingService {
         this.summaryService = summaryService;
 
         // 解析临时音频目录路径（优先使用绝对路径，否则拼接项目根目录）
+        //使用三元表达式判断是否为绝对路径，是则直接使用，否则拼接项目根目录获取完整路径，让代码更简洁
         this.tempAudioDir = Paths.get(tempAudioDir).isAbsolute()
                 ? Paths.get(tempAudioDir)
                 : Paths.get(System.getProperty("user.dir"), tempAudioDir);
@@ -77,10 +79,13 @@ public class TaskProcessingService {
      *
      * @param dir 需要初始化的目录路径
      */
-    private void initDirectory(Path dir) {
+        private void initDirectory(Path dir) {
         if (!dir.toFile().exists()) {
-            dir.toFile().mkdirs(); // 创建目录及其所有父级目录
-            logger.info("初始化临时音频目录成功: {}", dir.toAbsolutePath());
+            if (dir.toFile().mkdirs()) { // 创建目录及其所有父级目录
+                logger.info("初始化临时音频目录成功: {}", dir.toAbsolutePath());
+            } else {
+                logger.error("初始化临时音频目录失败: {}", dir.toAbsolutePath());
+            }
         }
     }
 
@@ -191,7 +196,10 @@ public class TaskProcessingService {
 
             // 可选步骤：压制字幕到视频（仅当任务要求时执行）
             // 检查任务是否已翻译且需要压制字幕
-            if (task.getStatus() == TaskStatus.TRANSLATED && task.isBurnSubtitles()) {
+            //if (task.getStatus() == TaskStatus.TRANSLATED && task.isBurnSubtitles()) { // 注释掉原有的条件判断
+
+            // 无论如何都压制字幕，只要任务状态是已翻译
+            if (task.getStatus() == TaskStatus.TRANSLATED) {
                 // 设置任务状态为字幕压制中
                 task.setStatus(TaskStatus.SUBTITLE_BURNING);
                 taskMapper.updateTask(task);
@@ -214,7 +222,7 @@ public class TaskProcessingService {
                 // 检查输出目录中是否存在重名文件
                 while (Files.exists(outputPath)) {
                     // 生成随机5位字符后缀
-                    String randomSuffix = generateRandomSuffix(5);
+                    String randomSuffix = generateRandomSuffix();
                     outputFilename = baseName + "_" + randomSuffix + extension;
                     outputPath = outputDir.resolve(outputFilename);
                 }
@@ -262,11 +270,11 @@ public class TaskProcessingService {
     }
 
     // 生成随机5位字符后缀的方法
-    private String generateRandomSuffix(int length) {
+    private String generateRandomSuffix() {
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        StringBuilder sb = new StringBuilder(length);
+        StringBuilder sb = new StringBuilder(5);
         Random random = new Random();
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < 5; i++) {
             sb.append(characters.charAt(random.nextInt(characters.length())));
         }
         return sb.toString();

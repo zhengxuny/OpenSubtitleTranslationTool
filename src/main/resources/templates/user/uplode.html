@@ -193,24 +193,6 @@
           </div>
 
           <!--
-            “同时压制字幕到视频”复选框。
-            `form-check` 和 `mb-3`：Bootstrap类，用于设置复选框的样式和下边距。
-          -->
-          <div class="form-check mb-3">
-            <!--
-              复选框输入。
-              `class="form-check-input"`：Bootstrap类，用于设置复选框的样式。
-              `type="checkbox"`：指定输入类型为复选框。
-              `id="burnSubtitles"`：输入框的ID，用于JavaScript中引用。
-            -->
-            <input class="form-check-input" type="checkbox" id="burnSubtitles">
-            <!-- 复选框的标签 -->
-            <label class="form-check-label" for="burnSubtitles">
-              同时压制字幕到视频
-            </label>
-          </div>
-
-          <!--
             提交按钮。
             `type="submit"`：指定按钮类型为提交按钮。
             `class="btn btn-success w-100"`：Bootstrap类，用于设置按钮的样式、颜色和宽度。
@@ -363,8 +345,8 @@
         // 将选择的文件添加到 FormData 对象中
         formData.append('file', fileInput.files[0]);
 
-        // 将“同时压制字幕到视频”复选框的状态添加到 FormData 对象中
-        formData.append('burnSubtitles', document.getElementById('burnSubtitles').checked);
+        // 移除对 burnSubtitles 的处理，因为现在默认压制字幕
+        // formData.append('burnSubtitles', document.getElementById('burnSubtitles').checked);
 
         // 禁用提交按钮，并显示上传中的动画
         $(this).find('button[type="submit"]').prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 上传中...');
@@ -493,9 +475,8 @@
             // 如果任务状态为 COMPLETED，则显示下载链接
             if (task.status === 'COMPLETED') {
               $('#downloadLink').attr('href', `/api/task/download/srt/translated/${taskId}`).show();
-              if (task.burnSubtitles && task.subtitledVideoFilePath) {
-                $('#videoDownloadLink').attr('href', `/api/task/download/video/subtitled/${taskId}`).show();
-              }
+              // 强制显示压制后的视频下载链接
+              $('#videoDownloadLink').attr('href', `/api/task/download/video/subtitled/${taskId}`).show();
               clearInterval(interval);
             } else if (['FAILED', 'CANCELLED'].includes(task.status)) {
               clearInterval(interval);

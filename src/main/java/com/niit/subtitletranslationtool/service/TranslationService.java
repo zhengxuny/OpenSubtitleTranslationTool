@@ -259,7 +259,7 @@ public class TranslationService {
         requestBody.put("model", doubaoModel); // 使用的模型
         requestBody.put("temperature", 0.3); // 调整随机性，降低发散性
         requestBody.put("messages", List.of(Map.of("role", "user", "content", prompt))); // 放入prompt
-        requestBody.put("thinking", Map.of("type", "disabled")); // 关闭思考
+//        requestBody.put("thinking", Map.of("type", "disabled")); // 关闭思考
 
         // 3. 发起HTTP POST请求
         ResponseEntity<DoubaoResponse> response = restTemplate.exchange(
