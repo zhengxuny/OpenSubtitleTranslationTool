@@ -10,49 +10,24 @@
   <link rel="stylesheet" href="/static/css/admin-common.css">
 </head>
 <body>
-<!-- 引入admin-navbar片段 -->
 <div th:replace="~{fragments/admin-navbar :: admin-navbar}"></div>
 
-<!--
-  admin-container 是一个用于包含管理页面主要内容的容器。
-  它设置了内边距（padding）和最大宽度（max-width），以确保内容在不同屏幕尺寸上都能良好显示。
--->
+<!-- 管理页面主要内容容器 -->
 <div class="admin-container">
-  <!--
-    使用 th:text 动态设置标题内容。
-    ${task.originalVideoFilename} 是一个Thymeleaf表达式，用于从后端传递过来的 task 对象中获取 originalVideoFilename 属性的值。
-    mb-4 类用于设置下边距 (margin-bottom)，使标题与下方内容之间有一定间距。
-  -->
+  <!-- 任务详情标题，动态显示视频文件名 -->
   <h1 class="mb-4" th:text="'任务详情 - ' + ${task.originalVideoFilename}"></h1>
 
-  <!--
-    使用 Bootstrap 的 card 组件来展示任务的基础信息。
-    card 组件提供了一个带有圆角和阴影的容器，用于突出显示内容。
-  -->
+  <!-- 任务基础信息卡片 -->
   <div class="card mb-4">
-    <!-- card-body 类用于设置卡片内容的内边距。 -->
     <div class="card-body">
-      <!-- card-title 类用于设置卡片标题的样式。 -->
       <h5 class="card-title">基础信息</h5>
-      <!--
-        card-text 类用于设置卡片文本内容的样式。
-        th:text 用于动态设置文本内容，从 task 对象中获取相应属性的值。
-      -->
       <p class="card-text">任务ID：<span th:text="${task.id}"></span></p>
       <p class="card-text">用户ID：<span th:text="${task.userId}"></span></p>
-      <!--
-        #temporals.format 是 Thymeleaf 提供的日期格式化工具。
-        它将 task.createdAt 属性（一个日期对象）格式化为 'yyyy-MM-dd HH:mm' 格式的字符串。
-      -->
+      <!-- 上传时间，格式化显示 -->
       <p class="card-text">上传时间：<span th:text="${#temporals.format(task.createdAt, 'yyyy-MM-dd HH:mm')}"></span></p>
+      <!-- 最后更新时间，格式化显示 -->
       <p class="card-text">最后更新：<span th:text="${#temporals.format(task.updatedAt, 'yyyy-MM-dd HH:mm')}"></span></p>
-      <!--
-        根据任务状态显示不同的文本颜色。
-        th:classappend 用于动态添加 CSS 类。
-        如果任务状态为 COMPLETED，则添加 text-success 类（绿色）。
-        如果任务状态为 FAILED，则添加 text-danger 类（红色）。
-        否则，添加 text-muted 类（灰色）。
-      -->
+      <!-- 任务状态，根据状态显示不同颜色 -->
       <p class="card-text">任务状态：<span th:text="${task.status.displayName}"
                                   th:classappend="${task.status.name() == 'COMPLETED' ? 'text-success' :
                                  (task.status.name() == 'FAILED' ? 'text-danger' : 'text-muted')}">
@@ -61,35 +36,30 @@
     </div>
   </div>
 
-  <!-- 展示文件信息 -->
+  <!-- 文件信息卡片 -->
   <div class="card mb-4">
     <div class="card-body">
       <h5 class="card-title">文件信息</h5>
       <p class="card-text">原视频文件名：<span th:text="${task.originalVideoFilename}"></span></p>
       <p class="card-text">存储路径：<span th:text="${task.videoFilePath}"></span></p>
-      <!--
-        使用条件表达式判断 translatedSrtFilename 是否为空。
-        如果为空，则显示 "无"，否则显示文件名。
-        ?: 是 Elvis Operator，是三元运算符的简写形式。
-      -->
+      <!-- 翻译后字幕文件，为空显示“无” -->
       <p class="card-text">翻译后字幕文件：<span th:text="${task.translatedSrtFilename ?: '无'}"></span></p>
+      <!-- 压制后视频文件，为空显示“无” -->
       <p class="card-text">压制后视频文件：<span th:text="${task.subtitledVideoFilename ?: '无'}"></span></p>
     </div>
   </div>
 
-  <!-- 展示错误信息 -->
+  <!-- 错误信息卡片 -->
   <div class="card">
     <div class="card-body">
       <h5 class="card-title">错误信息</h5>
-      <!--
-        如果 task.errorMessage 为空，则显示 "无错误信息"，否则显示错误信息。
-      -->
+      <!-- 错误信息，为空显示“无错误信息” -->
       <p class="card-text" th:text="${task.errorMessage ?: '无错误信息'}"></p>
     </div>
   </div>
 </div>
 
-<!-- 引入 Bootstrap 的 JavaScript 文件，用于支持 Bootstrap 组件的交互功能。 -->
+<!-- 引入 Bootstrap JavaScript -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

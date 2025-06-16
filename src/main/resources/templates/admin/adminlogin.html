@@ -38,68 +38,23 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
   <script>
     /**
-     * @file 管理员登录页面脚本
-     * @description
-     * 该脚本用于处理管理员登录的逻辑。它监听登录表单的提交事件，
-     * 阻止默认的表单提交行为，然后从表单中获取用户名和密码。
-     * 接下来，它调用后端API进行身份验证。如果登录成功，
-     * 则将管理员用户名存储在本地存储中，并重定向到管理员主页。
-     * 如果登录失败，则显示错误消息。
+     * 管理员登录页面脚本
+     * 处理管理员登录逻辑：验证用户名密码，成功则跳转到管理页面，失败则显示错误信息。
      */
     document.addEventListener('DOMContentLoaded', () => {
-      /**
-       * @description 获取登录表单元素
-       * @type {HTMLFormElement}
-       */
       const loginForm = document.getElementById('loginForm');
-
-      /**
-       * @description 获取错误消息显示元素
-       * @type {HTMLDivElement}
-       */
       const errorMessageElement = document.getElementById('errorMessage');
 
-      /**
-       * @description 登录表单提交事件监听器
-       *              当表单提交时，阻止默认行为，获取用户名和密码，
-       *              并调用API进行身份验证。
-       * @param {Event} event - 提交事件对象
-       */
       loginForm.addEventListener('submit', async (event) => {
-        /**
-         * @description 阻止表单默认提交行为，防止页面跳转
-         *              这是因为我们希望使用JavaScript来处理表单提交，
-         *              而不是让浏览器执行默认的页面跳转。
-         */
-        event.preventDefault();
+        event.preventDefault(); // 阻止默认提交
 
-        /**
-         * @description 获取用户名输入框的值
-         * @type {string}
-         */
         const username = document.getElementById('username').value;
-
-        /**
-         * @description 获取密码输入框的值
-         * @type {string}
-         */
         const password = document.getElementById('password').value;
 
-        /**
-         * @description 登录前清空错误消息，并重置样式
-         *              确保每次登录尝试前，错误消息区域是干净的，
-         *              并且没有应用任何错误样式。
-         */
-        errorMessageElement.textContent = '';
-        errorMessageElement.className = 'mt-3 text-center';
+        errorMessageElement.textContent = ''; // 清空错误信息
+        errorMessageElement.className = 'mt-3 text-center'; // 重置样式
 
         try {
-          /**
-           * @description 使用fetch API向后端发送登录请求
-           *              fetch API是现代浏览器提供的用于发送HTTP请求的接口。
-           *              这里我们发送一个POST请求到'/admin/auth/login'，
-           *              并传递用户名和密码。
-           */
           const response = await fetch('/admin/auth/login', {
             method: 'POST',
             headers: {
@@ -111,69 +66,24 @@
             }).toString()
           });
 
-          /**
-           * @description 首先检查状态来处理所有响应
-           *              根据HTTP状态码来判断请求是否成功。
-           *              200表示成功，其他状态码表示失败。
-           */
           if (response.status === 200) {
-            /**
-             * @description 解析从后端返回的JSON数据
-             *              使用`response.json()`方法将响应体解析为JSON对象。
-             *              这个JSON对象包含了登录是否成功的信息以及其他相关数据。
-             */
             const data = await response.json();
-            /**
-             * @description 检查登录是否成功
-             *              根据后端返回的`data.success`字段来判断登录是否成功。
-             *              如果成功，则将管理员用户名存储在本地存储中，并重定向到管理员主页。
-             *              如果失败，则显示错误消息。
-             */
+
             if (data.success) {
-              /**
-               * @description 将管理员用户名存储在本地存储中
-               *              使用`localStorage.setItem()`方法将管理员用户名存储在本地存储中。
-               *              这样，即使页面刷新，我们仍然可以知道哪个管理员已经登录。
-               */
-              localStorage.setItem('adminUsername', data.username);
-              /**
-               * @description 重定向到管理员主页
-               *              使用`window.location.href`将页面重定向到管理员主页。
-               *              这会将用户带到他们可以管理字幕翻译工具的页面。
-               */
-              window.location.href = '/admin/index';
+              localStorage.setItem('adminUsername', data.username); // 保存用户名
+              window.location.href = '/admin/index'; // 跳转到管理页面
             } else {
-              /**
-               * @description 显示错误消息
-               *              如果登录失败，则将错误消息显示在页面上。
-               *              错误消息的内容从后端返回的`data.message`字段获取。
-               *              如果`data.message`不存在，则显示一个默认的错误消息。
-               */
               errorMessageElement.textContent = data.message || '登录失败，请检查用户名或密码。';
-              /**
-               * @description 添加错误样式
-               *              使用`classList.add()`方法向错误消息元素添加`alert`和`alert-danger`类。
-               *              这些类会应用红色背景和边框，使错误消息更加醒目。
-               */
               errorMessageElement.classList.add('alert', 'alert-danger');
             }
           } else {
-            /**
-             * @description 处理非200状态码的响应
-             *              如果响应状态码不是200，则表示请求失败。
-             *              我们需要解析错误信息并显示给用户。
-             */
+            // 处理非200状态码
             const errorData = await response.json();
             errorMessageElement.textContent = errorData.message || '登录失败，请检查用户名或密码。';
             errorMessageElement.classList.add('alert', 'alert-danger');
           }
         } catch (error) {
-          /**
-           * @description 捕获并处理请求过程中发生的任何错误
-           *              如果在请求过程中发生任何错误（例如，网络连接错误），
-           *              则会在此处捕获该错误。然后，我们将错误消息显示在页面上，
-           *              并将其记录到控制台中。
-           */
+          // 处理请求异常
           errorMessageElement.textContent = `请求异常：${error.message || '请检查网络连接'}`;
           errorMessageElement.classList.add('alert', 'alert-danger');
           console.error('登录异常:', error);
