@@ -203,10 +203,33 @@ public class SecurityConfig {
                     .usernameParameter("username")
                     // 指定密码参数名 (指定密码参数名)
                     .passwordParameter("password")
-                    // 指定认证成功处理器 (指定认证成功处理器)
-                    .successHandler(customAuthenticationSuccessHandler)
-                    // 指定认证失败处理器 (指定认证失败处理器)
-                    .failureHandler(customAuthenticationFailureHandler))
+                    // 指定认证成功处理器
+                    .successHandler(
+                        (request, response, auth) -> {
+                          // 设置响应状态码为 200
+                          response.setStatus(HttpServletResponse.SC_OK);
+                          // 设置响应内容类型为 JSON
+                          response.setContentType("application/json;charset=UTF-8");
+                          // 向响应中写入 JSON 消息，包含登录状态、消息和用户名
+                          response
+                              .getWriter()
+                              .write(
+                                  "{\"success\":true, \"message\":\"管理员登录成功\", \"username\":\""
+                                      + auth.getName()
+                                      + "\"}");
+                        })
+                    // 指定认证失败处理器
+                    .failureHandler(
+                        (request, response, ex) -> {
+                          // 设置响应状态码为 401 (Unauthorized)
+                          response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                          // 设置响应内容类型为 JSON
+                          response.setContentType("application/json;charset=UTF-8");
+                          // 向响应中写入 JSON 消息，包含登录失败状态和错误消息
+                          response
+                              .getWriter()
+                              .write("{\"success\":false, \"message\":\"" + ex.getMessage() + "\"}");
+                        }))
         .logout(
             logout ->
                 logout
