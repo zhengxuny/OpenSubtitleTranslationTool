@@ -52,6 +52,7 @@ public class SecurityConfig {
     this.customAuthenticationFailureHandler = customAuthenticationFailureHandler;
   }
 
+
   /**
    * 密码编码器 Bean。
    *
